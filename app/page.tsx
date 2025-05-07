@@ -9,6 +9,7 @@ import { motion } from "framer-motion"
 // 絵文字カテゴリーの定義
 type EmojiCategory = {
   name: string
+  icon: string
   color: string
   emojis: string[]
 }
@@ -18,7 +19,6 @@ export default function Home() {
   const [secondEmoji, setSecondEmoji] = useState<string | null>(null)
   const [showResults, setShowResults] = useState(false)
   const [showDetail, setShowDetail] = useState<string | null>(null)
-  const [showMenu, setShowMenu] = useState(false)
   const [currentTime, setCurrentTime] = useState("00:00")
   const [draggingEmoji, setDraggingEmoji] = useState<string | null>(null)
   const [isDraggingOver, setIsDraggingOver] = useState<string | null>(null)
@@ -27,6 +27,9 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState(0)
   const [isSelectingSecond, setIsSelectingSecond] = useState(false)
   const [showRelatedEmojis, setShowRelatedEmojis] = useState(false)
+  const [tooltipEmoji, setTooltipEmoji] = useState<string | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
+  const [secondSelectionMode, setSecondSelectionMode] = useState<"related" | "category">("related")
 
   // ドラッグ中の絵文字の位置を追跡
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
@@ -35,6 +38,9 @@ export default function Home() {
   // ドロップ領域の参照
   const firstDropRef = useRef<HTMLDivElement>(null)
   const secondDropRef = useRef<HTMLDivElement>(null)
+
+  // 長押し検出用のタイマー
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // 時間を更新
   useEffect(() => {
@@ -50,49 +56,149 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
 
-  // 絵文字カテゴリー
+  // 絵文字カテゴリー - より馴染みのある絵文字に変更
   const emojiCategories: EmojiCategory[] = [
     {
       name: "公共施設",
+      icon: "🏢",
       color: "from-blue-100 to-blue-50",
       emojis: ["🏫", "🏥", "🏛️", "🏢", "🏤", "🏨", "🏦"],
     },
     {
       name: "交通・移動",
+      icon: "🚗",
       color: "from-green-100 to-green-50",
       emojis: ["🚌", "🚗", "🚲", "🚇", "🚏", "🛣️", "🚦", "🚄", "✈️"],
     },
     {
       name: "福祉・子育て",
+      icon: "👨‍👩‍👧",
       color: "from-yellow-100 to-yellow-50",
       emojis: ["👪", "👶", "👩‍👧", "👴", "👩‍❤️‍👨", "🏠", "💑", "👨‍👩‍👧‍👦", "🧸"],
     },
     {
       name: "自然・環境",
+      icon: "🌲",
       color: "from-teal-100 to-teal-50",
       emojis: ["🌳", "♻️", "🌱", "🌊", "🏞️", "🗑️", "🌷", "🌿", "🌞"],
     },
     {
       name: "手続き・法律",
+      icon: "📝",
       color: "from-purple-100 to-purple-50",
       emojis: ["🧾", "📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "📂"],
     },
     {
       name: "お金・支援",
+      icon: "💴",
       color: "from-amber-100 to-amber-50",
       emojis: ["💰", "💳", "💵", "🏦", "💹", "📈", "💸", "🧾", "💼"],
     },
     {
       name: "文化・イベント",
+      icon: "🎪",
       color: "from-pink-100 to-pink-50",
       emojis: ["🎭", "🎬", "🎨", "🎤", "🎪", "🎻", "🎮", "📚", "🏛️"],
     },
     {
       name: "食事・健康",
+      icon: "🍲",
       color: "from-red-100 to-red-50",
       emojis: ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞"],
     },
   ]
+
+  // 絵文字の説明
+  const emojiDescriptions: Record<string, string> = {
+    // 公共施設
+    "🏫": "学校・教育施設",
+    "🏥": "病院・医療施設",
+    "🏛️": "公共機関・役所",
+    "🏢": "オフィス・ビル",
+    "🏤": "郵便局",
+    "🏨": "ホテル・宿泊施設",
+    "🏦": "銀行・金融機関",
+
+    // 交通・移動
+    "🚌": "バス・公共交通",
+    "🚗": "自動車・交通",
+    "🚲": "自転車・サイクリング",
+    "🚇": "地下鉄・電車",
+    "🚏": "バス停・駅",
+    "🛣️": "道路・高速道路",
+    "🚦": "交通ルール・信号",
+    "🚄": "新幹線・高速鉄道",
+    "✈️": "飛行機・空港",
+
+    // 福祉・子育て
+    "👪": "家族・子育て",
+    "👶": "赤ちゃん・乳幼児",
+    "👩‍👧": "母子・ひとり親",
+    "👴": "高齢者・シニア",
+    "👩‍❤️‍👨": "カップル・夫婦",
+    "🏠": "住宅・住居",
+    "💑": "結婚・パートナー",
+    "👨‍👩‍👧‍👦": "大家族・多子世帯",
+    "🧸": "子ども・遊び",
+
+    // 自然・環境
+    "🌳": "自然・公園",
+    "♻️": "リサイクル・環境",
+    "🌱": "植物・栽培",
+    "🌊": "水・海",
+    "🏞️": "景観・風景",
+    "🗑️": "ゴミ・廃棄物",
+    "🌷": "花・園芸",
+    "🌿": "植物・自然",
+    "🌞": "天気・気候",
+    "🌲": "森林・自然",
+
+    // 手続き・法律
+    "🧾": "領収書・証明書",
+    "📋": "申請・手続き",
+    "✅": "確認・承認",
+    "📑": "書類・文書",
+    "🖋️": "署名・記入",
+    "📄": "契約・同意書",
+    "🔖": "予約・申込",
+    "📁": "ファイル・保管",
+    "📂": "書類・整理",
+    "📝": "書類・申請",
+
+    // お金・支援
+    "💰": "お金・資金",
+    "💳": "カード・支払い",
+    "💵": "現金・通貨",
+    "💴": "お金・円",
+    "💹": "経済・市場",
+    "📈": "成長・増加",
+    "💸": "支払い・送金",
+    "💼": "仕事・ビジネス",
+    "💱": "両替・通貨交換",
+
+    // 文化・イベント
+    "🎭": "芸術・演劇",
+    "🎬": "映画・映像",
+    "🎨": "美術・創作",
+    "🎤": "音楽・歌",
+    "🎪": "イベント・祭り",
+    "🎻": "音楽・演奏",
+    "🎮": "ゲーム・娯楽",
+    "📚": "本・読書",
+    "🎟️": "チケット・入場券",
+
+    // 食事・健康
+    "🍽️": "食事・レストラン",
+    "🍲": "料理・調理",
+    "🍱": "弁当・食事",
+    "🥗": "サラダ・健康食",
+    "🍜": "麺類・ラーメン",
+    "🍳": "朝食・調理",
+    "🍖": "肉・タンパク質",
+    "🥘": "鍋料理・シチュー",
+    "🍞": "パン・穀物",
+    "🍰": "デザート・お菓子",
+  }
 
   // 絵文字の関連性マッピング
   const emojiRelations: Record<string, string[]> = {
@@ -137,6 +243,7 @@ export default function Home() {
     "🌷": ["🌳", "🌱", "🏞️", "🌿", "🌞"],
     "🌿": ["🌳", "🌱", "🏞️", "🌷", "🌞"],
     "🌞": ["🌳", "🌱", "🏞️", "🌷", "🌿", "🌈"],
+    "🌲": ["🌳", "🌱", "🏞️", "🌿", "🌞", "🌈"],
 
     // 手続き・法律
     "🧾": ["📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "📂", "📌", "🏛️", "💰", "🏫", "🏥", "🚌"],
@@ -148,11 +255,13 @@ export default function Home() {
     "🔖": ["🧾", "📋", "✅", "📑", "🖋️", "📄", "📁", "📂"],
     "📁": ["🧾", "📋", "✅", "📑", "🖋️", "📄", "🔖", "📂", "🏛️"],
     "📂": ["🧾", "📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "🏛️"],
+    "📝": ["🧾", "📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "📂"],
 
     // お金・支援
     "💰": ["💳", "💵", "🏦", "💹", "📈", "💸", "🧾", "💼", "💱", "🏛️", "👪", "👶", "👴"],
     "💳": ["💰", "💵", "🏦", "💹", "📈", "💸", "🧾", "💼", "💱"],
     "💵": ["💰", "💳", "🏦", "💹", "📈", "💸", "🧾", "💼", "💱"],
+    "💴": ["💰", "💳", "💵", "🏦", "💹", "📈", "💸", "🧾", "💼", "💱"],
     "💹": ["💰", "💳", "💵", "🏦", "📈", "💸", "🧾", "💼"],
     "📈": ["💰", "💳", "💵", "🏦", "💹", "💸", "🧾", "💼"],
     "💸": ["💰", "💳", "💵", "🏦", "💹", "📈", "🧾", "💼"],
@@ -181,22 +290,6 @@ export default function Home() {
     "🥘": ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🍞", "🍰"],
     "🍞": ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍰"],
     "🍰": ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞"],
-  }
-
-  // サブカテゴリーの絵文字
-  const subCategories: Record<string, string[]> = {
-    "🏫": ["📚", "🧒", "🎓", "🖌️", "🧩", "🎭", "🧮", "🔬", "🎨"],
-    "🏥": ["💊", "🩺", "🦷", "👨‍⚕️", "🧠", "🩹", "🏥", "🚑", "👩‍⚕️"],
-    "👪": ["👶", "👩‍👧", "👴", "👩‍❤️‍👨", "🏠", "💑", "👨‍👩‍👧‍👦", "🧸", "🎓"],
-    "🚌": ["🚗", "🚲", "🚇", "🚏", "🛣️", "🚦", "🚄", "✈️", "🚢"],
-    "🌳": ["♻️", "🌱", "🌊", "🏞️", "🗑️", "🌷", "🌿", "🌞", "🌈"],
-    "🧾": ["📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "📂", "📌"],
-    "🧑‍⚖️": ["⚖️", "📜", "👨‍⚖️", "🔨", "🗄️", "🔐", "📰", "🏢", "🔍"],
-    "💰": ["💳", "💵", "🏦", "💹", "📈", "💸", "🧾", "💼", "💱"],
-    "🎭": ["🎬", "🎨", "🎤", "🎪", "🎻", "🎮", "📚", "🏛️", "🎟️"],
-    "🍽️": ["🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞", "🍰"],
-    "🏛️": ["🏛️", "🏯", "🗽", "⛪️", "🕌", "🕍", "🛕", "⛩️", "🕋"],
-    "🏢": ["🏢", "🏬", "🏭", "🏗️", "🏚️", "🏘️", "🏙️", "🏣", "🏪"],
   }
 
   // 選択された絵文字に関連する絵文字を取得
@@ -416,11 +509,6 @@ export default function Home() {
     setShowDetail(null)
   }
 
-  // メニューを開く/閉じる
-  const toggleMenu = () => {
-    setShowMenu(!showMenu)
-  }
-
   // 絵文字を選択
   const selectEmoji = (emoji: string) => {
     if (!firstEmoji) {
@@ -431,6 +519,115 @@ export default function Home() {
       setIsSelectingSecond(false)
       executeSearch()
     }
+  }
+
+  // ツールチップを表示
+  const showTooltip = (emoji: string, x: number, y: number) => {
+    setTooltipEmoji(emoji)
+    setTooltipPosition({ x, y })
+  }
+
+  // ツールチップを非表示
+  const hideTooltip = () => {
+    setTooltipEmoji(null)
+  }
+
+  // マウスオーバーハンドラー
+  const handleMouseOver = (emoji: string, e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    showTooltip(emoji, rect.left + rect.width / 2, rect.top - 10)
+  }
+
+  // マウスアウトハンドラー
+  const handleMouseOut = () => {
+    hideTooltip()
+  }
+
+  // タッチスタートハンドラー
+  const handleTouchStart = (emoji: string, e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    const rect = e.currentTarget.getBoundingClientRect()
+
+    // 長押し検出用のタイマーをセット
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+    }
+
+    longPressTimerRef.current = setTimeout(() => {
+      showTooltip(emoji, rect.left + rect.width / 2, rect.top - 10)
+    }, 500) // 500ms以上の長押しでツールチップを表示
+
+    // ドラッグ開始の処理
+    setDraggingEmoji(emoji)
+    setIsDragging(true)
+    setDragPosition({ x: touch.clientX, y: touch.clientY })
+
+    // タッチ移動を追跡
+    const handleTouchMove = (e: TouchEvent) => {
+      // 長押しタイマーをクリア（ドラッグ中はツールチップを表示しない）
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current)
+        longPressTimerRef.current = null
+      }
+
+      const touch = e.touches[0]
+      setDragPosition({ x: touch.clientX, y: touch.clientY })
+
+      // ドロップ領域上にあるかチェック
+      if (firstDropRef.current && isPointInElement(touch.clientX, touch.clientY, firstDropRef.current)) {
+        setIsDraggingOver("first")
+      } else if (secondDropRef.current && isPointInElement(touch.clientX, touch.clientY, secondDropRef.current)) {
+        setIsDraggingOver("second")
+      } else {
+        setIsDraggingOver(null)
+      }
+
+      e.preventDefault() // スクロールを防止
+    }
+
+    // タッチ終了時のイベント
+    const handleTouchEnd = (e: TouchEvent) => {
+      // 長押しタイマーをクリア
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current)
+        longPressTimerRef.current = null
+      }
+
+      hideTooltip()
+      setIsDragging(false)
+      setDraggingEmoji(null)
+
+      if (e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0]
+
+        // ドロップ領域上にあるかチェック
+        if (firstDropRef.current && isPointInElement(touch.clientX, touch.clientY, firstDropRef.current)) {
+          setFirstEmoji(emoji)
+        } else if (
+          secondDropRef.current &&
+          isPointInElement(touch.clientX, touch.clientY, secondDropRef.current) &&
+          firstEmoji
+        ) {
+          setSecondEmoji(emoji)
+        }
+      }
+
+      window.removeEventListener("touchmove", handleTouchMove)
+      window.removeEventListener("touchend", handleTouchEnd)
+      setIsDraggingOver(null)
+    }
+
+    window.addEventListener("touchmove", handleTouchMove, { passive: false })
+    window.addEventListener("touchend", handleTouchEnd)
+  }
+
+  // タッチエンドハンドラー
+  const handleTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+    hideTooltip()
   }
 
   // ドラッグ開始ハンドラー
@@ -465,59 +662,6 @@ export default function Home() {
 
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("mouseup", handleMouseUp)
-  }
-
-  // タッチ開始ハンドラー（モバイル用）
-  const handleTouchStart = (emoji: string, e: React.TouchEvent) => {
-    setDraggingEmoji(emoji)
-    setIsDragging(true)
-    const touch = e.touches[0]
-    setDragPosition({ x: touch.clientX, y: touch.clientY })
-
-    // タッチ移動を追跡
-    const handleTouchMove = (e: TouchEvent) => {
-      const touch = e.touches[0]
-      setDragPosition({ x: touch.clientX, y: touch.clientY })
-
-      // ドロップ領域上にあるかチェック
-      if (firstDropRef.current && isPointInElement(touch.clientX, touch.clientY, firstDropRef.current)) {
-        setIsDraggingOver("first")
-      } else if (secondDropRef.current && isPointInElement(touch.clientX, touch.clientY, secondDropRef.current)) {
-        setIsDraggingOver("second")
-      } else {
-        setIsDraggingOver(null)
-      }
-
-      e.preventDefault() // スクロールを防止
-    }
-
-    // タッチ終了時のイベント
-    const handleTouchEnd = (e: TouchEvent) => {
-      setIsDragging(false)
-      setDraggingEmoji(null)
-
-      if (e.changedTouches.length > 0) {
-        const touch = e.changedTouches[0]
-
-        // ドロップ領域上にあるかチェック
-        if (firstDropRef.current && isPointInElement(touch.clientX, touch.clientY, firstDropRef.current)) {
-          setFirstEmoji(emoji)
-        } else if (
-          secondDropRef.current &&
-          isPointInElement(touch.clientX, touch.clientY, secondDropRef.current) &&
-          firstEmoji
-        ) {
-          setSecondEmoji(emoji)
-        }
-      }
-
-      window.removeEventListener("touchmove", handleTouchMove)
-      window.removeEventListener("touchend", handleTouchEnd)
-      setIsDraggingOver(null)
-    }
-
-    window.addEventListener("touchmove", handleTouchMove, { passive: false })
-    window.addEventListener("touchend", handleTouchEnd)
   }
 
   // 要素内に点があるかチェック
@@ -565,13 +709,6 @@ export default function Home() {
               ) : (
                 <HomeIcon className="h-5 w-5 text-gray-600" />
               )}
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleMenu}
-              className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center"
-            >
-              <span className="text-xl">📁</span>
             </motion.button>
           </div>
 
@@ -624,22 +761,55 @@ export default function Home() {
                 </div>
               )}
 
-              {/* カテゴリータブ */}
-              {!isSelectingSecond && (
+              {/* 2個目の絵文字選択モード切り替えタブ */}
+              {isSelectingSecond && firstEmoji && (
+                <div className="flex justify-center mb-4">
+                  <div className="bg-white rounded-full p-1 shadow-sm">
+                    <button
+                      className={`px-4 py-1.5 rounded-full text-xs ${
+                        secondSelectionMode === "related"
+                          ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                          : "text-gray-600"
+                      }`}
+                      onClick={() => setSecondSelectionMode("related")}
+                    >
+                      関連絵文字
+                    </button>
+                    <button
+                      className={`px-4 py-1.5 rounded-full text-xs ${
+                        secondSelectionMode === "category"
+                          ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                          : "text-gray-600"
+                      }`}
+                      onClick={() => setSecondSelectionMode("category")}
+                    >
+                      カテゴリー
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* カテゴリータブ - 白黒スタイルに変更 */}
+              {(!isSelectingSecond || (isSelectingSecond && secondSelectionMode === "category")) && (
                 <div className="mb-4 overflow-x-auto">
-                  <div className="flex space-x-2 pb-2">
+                  <div className="flex space-x-2 pb-2 bg-gray-100 p-2 rounded-xl">
                     {emojiCategories.map((category, index) => (
                       <motion.button
                         key={index}
-                        className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap ${
+                        className={`p-2 rounded-full text-lg whitespace-nowrap ${
                           activeCategory === index
-                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md"
-                            : "bg-white text-gray-700"
+                            ? "bg-white shadow-md text-black"
+                            : "bg-gray-200 text-gray-500 filter grayscale"
                         }`}
                         onClick={() => setActiveCategory(index)}
                         whileTap={{ scale: 0.95 }}
+                        onMouseOver={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          showTooltip(`category_${index}`, rect.left + rect.width / 2, rect.top - 10)
+                        }}
+                        onMouseOut={hideTooltip}
                       >
-                        {category.name}
+                        {category.icon}
                       </motion.button>
                     ))}
                   </div>
@@ -648,7 +818,7 @@ export default function Home() {
 
               {/* 絵文字選択グリッド */}
               <div className="grid grid-cols-4 gap-3">
-                {isSelectingSecond && firstEmoji
+                {isSelectingSecond && firstEmoji && secondSelectionMode === "related"
                   ? getRelatedEmojisForSelection(firstEmoji).map((emoji) => (
                       <motion.div
                         key={emoji}
@@ -657,6 +827,9 @@ export default function Home() {
                         }`}
                         onMouseDown={(e) => handleDragStart(emoji, e)}
                         onTouchStart={(e) => handleTouchStart(emoji, e)}
+                        onTouchEnd={handleTouchEnd}
+                        onMouseOver={(e) => handleMouseOver(emoji, e)}
+                        onMouseOut={handleMouseOut}
                         onClick={() => selectEmoji(emoji)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -670,6 +843,9 @@ export default function Home() {
                         className={`flex items-center justify-center h-24 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br ${emojiCategories[activeCategory].color}`}
                         onMouseDown={(e) => handleDragStart(emoji, e)}
                         onTouchStart={(e) => handleTouchStart(emoji, e)}
+                        onTouchEnd={handleTouchEnd}
+                        onMouseOver={(e) => handleMouseOver(emoji, e)}
+                        onMouseOut={handleMouseOut}
                         onClick={() => selectEmoji(emoji)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -682,7 +858,13 @@ export default function Home() {
               {/* カテゴリーの説明 */}
               <div className="mt-4 text-center">
                 {isSelectingSecond && firstEmoji ? (
-                  <p className="text-xs text-gray-500">{firstEmoji}に関連する絵文字を選んでください</p>
+                  secondSelectionMode === "related" ? (
+                    <p className="text-xs text-gray-500">{firstEmoji}に関連する絵文字を選んでください</p>
+                  ) : (
+                    <p className="text-xs text-gray-500">
+                      {emojiCategories[activeCategory].name}から絵文字を選んでください
+                    </p>
+                  )
                 ) : (
                   <p className="text-xs text-gray-500">{emojiCategories[activeCategory].name}のサービスを探す</p>
                 )}
@@ -770,6 +952,8 @@ export default function Home() {
                     key={emoji}
                     className="flex flex-col items-center justify-center h-28 bg-white rounded-xl shadow-md cursor-pointer"
                     onClick={() => selectEmojiForResearch(emoji)}
+                    onMouseOver={(e) => handleMouseOver(emoji, e)}
+                    onMouseOut={handleMouseOut}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -859,155 +1043,88 @@ export default function Home() {
             </div>
           )}
 
-          {/* メニュー画面 */}
-          {showMenu && (
-            <motion.div
-              className="absolute inset-0 bg-black/20 z-20 flex justify-end"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={() => setShowMenu(false)}
-            >
+          {/* AIチャットモーダル */}
+          {showAiChat && (
+            <div className="absolute inset-0 bg-black/50 flex items-end justify-center p-4 z-30">
               <motion.div
-                className="w-64 h-full bg-white shadow-xl p-6"
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
+                className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
                 transition={{ type: "spring", damping: 25 }}
-                onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex flex-col space-y-6">
-                  <div className="flex items-center justify-center mb-6">
-                    <span className="text-4xl">📁</span>
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-2">🤖</span>
+                    <span className="font-medium">AIアシスタント</span>
                   </div>
-
                   <motion.button
-                    className="flex items-center p-3 rounded-xl hover:bg-gray-100"
-                    whileTap={{ scale: 0.98 }}
+                    onClick={closeAiChat}
+                    className="text-gray-500 hover:text-gray-700"
+                    whileTap={{ scale: 0.9 }}
                   >
-                    <span className="text-2xl mr-3">📋</span>
-                    <span>マイサービス</span>
+                    <X className="h-5 w-5" />
                   </motion.button>
-
+                </div>
+                <div className="p-4 h-[200px] overflow-y-auto">
+                  {aiMessage && (
+                    <motion.div
+                      className="bg-gray-100 p-3 rounded-lg mb-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      {aiMessage}
+                    </motion.div>
+                  )}
+                </div>
+                <div className="p-4 border-t flex">
+                  <input
+                    type="text"
+                    placeholder="💬 質問を入力..."
+                    className="flex-1 border rounded-l-lg px-3 py-2 focus:outline-none"
+                  />
                   <motion.button
-                    className="flex items-center p-3 rounded-xl hover:bg-gray-100"
-                    whileTap={{ scale: 0.98 }}
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-r-lg"
+                    whileTap={{ scale: 0.95 }}
                   >
-                    <span className="text-2xl mr-3">❤️</span>
-                    <span>お気に入り</span>
-                  </motion.button>
-
-                  <motion.button
-                    className="flex items-center p-3 rounded-xl hover:bg-gray-100"
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="text-2xl mr-3">🔔</span>
-                    <span>お知らせ</span>
-                  </motion.button>
-
-                  <motion.button
-                    className="flex items-center p-3 rounded-xl hover:bg-gray-100"
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="text-2xl mr-3">⚙️</span>
-                    <span>設定</span>
-                  </motion.button>
-
-                  <div className="border-t border-gray-200 my-2"></div>
-
-                  <motion.button
-                    className="flex items-center p-3 rounded-xl hover:bg-gray-100"
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="text-2xl mr-3">❓</span>
-                    <span>ヘルプ</span>
+                    <span className="text-xl">📤</span>
                   </motion.button>
                 </div>
               </motion.div>
-            </motion.div>
+            </div>
           )}
         </div>
 
-        {/* 下部ナビゲーション */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-3 px-4">
-          <motion.button className="flex flex-col items-center" whileTap={{ scale: 0.9 }} onClick={resetSelection}>
-            <span className="text-2xl">🏠</span>
-          </motion.button>
-          <motion.button className="flex flex-col items-center" whileTap={{ scale: 0.9 }}>
-            <span className="text-2xl">❤️</span>
-          </motion.button>
-          <motion.button className="flex flex-col items-center" whileTap={{ scale: 0.9 }}>
-            <span className="text-2xl">🔔</span>
-          </motion.button>
-          <motion.button className="flex flex-col items-center" whileTap={{ scale: 0.9 }}>
-            <span className="text-2xl">⚙️</span>
-          </motion.button>
-        </div>
+        {/* ドラッグ中の絵文字表示 */}
+        {isDragging && draggingEmoji && (
+          <motion.div
+            className="fixed pointer-events-none text-4xl z-50 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-xl shadow-md"
+            style={{
+              left: `${dragPosition.x}px`,
+              top: `${dragPosition.y}px`,
+              background: "linear-gradient(to bottom right, #f0f4ff, #ffffff)",
+            }}
+            initial={{ scale: 0.8, opacity: 0.8 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            {draggingEmoji}
+          </motion.div>
+        )}
 
-        {/* AIチャットモーダル */}
-        {showAiChat && (
-          <div className="absolute inset-0 bg-black/50 flex items-end justify-center p-4 z-30">
-            <motion.div
-              className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              transition={{ type: "spring", damping: 25 }}
-            >
-              <div className="flex items-center justify-between p-4 border-b">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-2">🤖</span>
-                  <span className="font-medium">AIアシスタント</span>
-                </div>
-                <motion.button
-                  onClick={closeAiChat}
-                  className="text-gray-500 hover:text-gray-700"
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <X className="h-5 w-5" />
-                </motion.button>
-              </div>
-              <div className="p-4 h-[200px] overflow-y-auto">
-                {aiMessage && (
-                  <motion.div
-                    className="bg-gray-100 p-3 rounded-lg mb-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    {aiMessage}
-                  </motion.div>
-                )}
-              </div>
-              <div className="p-4 border-t flex">
-                <input
-                  type="text"
-                  placeholder="💬 質問を入力..."
-                  className="flex-1 border rounded-l-lg px-3 py-2 focus:outline-none"
-                />
-                <motion.button
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-r-lg"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="text-xl">📤</span>
-                </motion.button>
-              </div>
-            </motion.div>
+        {/* ツールチップ */}
+        {tooltipEmoji && (
+          <div
+            className="fixed z-50 bg-black/80 text-white text-xs rounded px-2 py-1 pointer-events-none transform -translate-x-1/2"
+            style={{
+              left: `${tooltipPosition.x}px`,
+              top: `${tooltipPosition.y - 30}px`,
+            }}
+          >
+            {tooltipEmoji.startsWith("category_")
+              ? emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name
+              : `${emojiDescriptions[tooltipEmoji] || tooltipEmoji} (${getEmojiCategory(tooltipEmoji)?.name || ""})`}
           </div>
         )}
       </div>
-
-      {/* ドラッグ中の絵文字表示 */}
-      {isDragging && draggingEmoji && (
-        <motion.div
-          className="fixed pointer-events-none text-4xl z-50 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-xl shadow-md"
-          style={{
-            left: `${dragPosition.x}px`,
-            top: `${dragPosition.y}px`,
-            background: "linear-gradient(to bottom right, #f0f4ff, #ffffff)",
-          }}
-          initial={{ scale: 0.8, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-        >
-          {draggingEmoji}
-        </motion.div>
-      )}
     </div>
   )
 }
