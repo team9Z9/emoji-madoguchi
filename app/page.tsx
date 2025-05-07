@@ -102,7 +102,7 @@ export default function Home() {
     },
     {
       name: "食事・健康",
-      icon: "🍲",
+      icon: "🍽️",
       color: "from-red-100 to-red-50",
       emojis: ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞"],
     },
