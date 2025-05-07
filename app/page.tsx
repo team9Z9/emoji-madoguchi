@@ -6,6 +6,13 @@ import { useState, useEffect, useRef } from "react"
 import { ArrowLeft, Wifi, Battery, X, HomeIcon } from "lucide-react"
 import { motion } from "framer-motion"
 
+// 絵文字カテゴリーの定義
+type EmojiCategory = {
+  name: string
+  color: string
+  emojis: string[]
+}
+
 export default function Home() {
   const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
   const [secondEmoji, setSecondEmoji] = useState<string | null>(null)
@@ -17,6 +24,9 @@ export default function Home() {
   const [isDraggingOver, setIsDraggingOver] = useState<string | null>(null)
   const [showAiChat, setShowAiChat] = useState(false)
   const [aiMessage, setAiMessage] = useState("")
+  const [activeCategory, setActiveCategory] = useState(0)
+  const [isSelectingSecond, setIsSelectingSecond] = useState(false)
+  const [showRelatedEmojis, setShowRelatedEmojis] = useState(false)
 
   // ドラッグ中の絵文字の位置を追跡
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
@@ -40,8 +50,138 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
 
-  // メインカテゴリーの絵文字
-  const mainCategories = ["🏫", "🏥", "👪", "🚌", "🌳", "🧾", "🧑‍⚖️", "💰", "🎭", "🍽️", "🏛️", "📱"]
+  // 絵文字カテゴリー
+  const emojiCategories: EmojiCategory[] = [
+    {
+      name: "公共施設",
+      color: "from-blue-100 to-blue-50",
+      emojis: ["🏫", "🏥", "🏛️", "🏢", "🏤", "🏨", "🏦"],
+    },
+    {
+      name: "交通・移動",
+      color: "from-green-100 to-green-50",
+      emojis: ["🚌", "🚗", "🚲", "🚇", "🚏", "🛣️", "🚦", "🚄", "✈️"],
+    },
+    {
+      name: "福祉・子育て",
+      color: "from-yellow-100 to-yellow-50",
+      emojis: ["👪", "👶", "👩‍👧", "👴", "👩‍❤️‍👨", "🏠", "💑", "👨‍👩‍👧‍👦", "🧸"],
+    },
+    {
+      name: "自然・環境",
+      color: "from-teal-100 to-teal-50",
+      emojis: ["🌳", "♻️", "🌱", "🌊", "🏞️", "🗑️", "🌷", "🌿", "🌞"],
+    },
+    {
+      name: "手続き・法律",
+      color: "from-purple-100 to-purple-50",
+      emojis: ["🧾", "📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "📂"],
+    },
+    {
+      name: "お金・支援",
+      color: "from-amber-100 to-amber-50",
+      emojis: ["💰", "💳", "💵", "🏦", "💹", "📈", "💸", "🧾", "💼"],
+    },
+    {
+      name: "文化・イベント",
+      color: "from-pink-100 to-pink-50",
+      emojis: ["🎭", "🎬", "🎨", "🎤", "🎪", "🎻", "🎮", "📚", "🏛️"],
+    },
+    {
+      name: "食事・健康",
+      color: "from-red-100 to-red-50",
+      emojis: ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞"],
+    },
+  ]
+
+  // 絵文字の関連性マッピング
+  const emojiRelations: Record<string, string[]> = {
+    // 公共施設
+    "🏫": ["👪", "🧒", "📚", "🎓", "🖌️", "🧩", "🎭", "🧮", "🔬", "🎨", "🧾", "💰"],
+    "🏥": ["👪", "👶", "👴", "💊", "🩺", "🦷", "👨‍⚕️", "🧠", "🩹", "🚑", "👩‍⚕️", "💰", "🧾"],
+    "🏛️": ["🧾", "📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "📂", "💰", "⚖️", "📜"],
+    "🏢": ["💼", "💰", "🧾", "📋", "📑", "🖋️", "📄", "🔖", "📁", "📂"],
+    "🏤": ["📬", "📦", "📮", "🧾", "💰"],
+    "🏨": ["🛌", "🧳", "🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞"],
+    "🏦": ["💰", "💳", "💵", "💹", "📈", "💸", "🧾"],
+
+    // 交通・移動
+    "🚌": ["🚏", "🛣️", "🚦", "👪", "👶", "👴", "🧾", "💰"],
+    "🚗": ["🛣️", "🚦", "🚏", "⛽", "🧾"],
+    "🚲": ["🛣️", "🚦", "🏞️", "🌳", "♻️"],
+    "🚇": ["🚏", "🚄", "🧾", "💰"],
+    "🚏": ["🚌", "🚗", "🚲", "🚇", "🚄", "🧾"],
+    "🛣️": ["🚌", "🚗", "🚲", "🚦", "🚏"],
+    "🚦": ["🚌", "🚗", "🚲", "🛣️"],
+    "🚄": ["🚏", "🧾", "💰"],
+    "✈️": ["🧳", "🧾", "💰", "🏨"],
+
+    // 福祉・子育て
+    "👪": ["👶", "👩‍👧", "👴", "👩‍❤️‍👨", "🏠", "💑", "👨‍👩‍👧‍👦", "🧸", "🏫", "🏥", "💰", "🧾", "🍽️"],
+    "👶": ["👪", "👩‍👧", "👨‍👩‍👧‍👦", "🧸", "🏫", "🏥", "💰", "🧾"],
+    "👩‍👧": ["👪", "👶", "👨‍👩‍👧‍👦", "🧸", "🏫", "💰", "🧾"],
+    "👴": ["👪", "🏥", "💰", "🧾", "🏛️"],
+    "👩‍❤️‍👨": ["👪", "👶", "👩‍👧", "👨‍👩‍👧‍👦", "💑", "🏠", "💰", "🧾"],
+    "🏠": ["👪", "👶", "👩‍👧", "👴", "👩‍❤️‍👨", "💑", "👨‍👩‍👧‍👦", "💰", "🧾"],
+    "💑": ["👪", "👩‍❤️‍👨", "👨‍👩‍👧‍👦", "🏠", "💰", "🧾"],
+    "👨‍👩‍👧‍👦": ["👪", "👶", "👩‍👧", "👩‍❤️‍👨", "💑", "🏠", "💰", "🧾", "🏫"],
+    "🧸": ["👶", "👪", "👩‍👧", "🏫", "🎮", "🎨"],
+
+    // 自然・環境
+    "🌳": ["♻️", "🌱", "🌊", "🏞️", "🗑️", "🌷", "🌿", "🌞", "🌈", "🧾"],
+    "♻️": ["🌳", "🌱", "🌊", "🏞️", "🗑️", "🧾", "🏛️"],
+    "🌱": ["🌳", "♻️", "🌊", "🏞️", "🌷", "🌿", "🌞"],
+    "🌊": ["🌳", "♻️", "🌱", "🏞️", "🧾"],
+    "🏞️": ["🌳", "♻️", "🌱", "🌊", "🌷", "🌿", "🌞", "🌈"],
+    "🗑️": ["♻️", "🌳", "🧾", "🏛️"],
+    "🌷": ["🌳", "🌱", "🏞️", "🌿", "🌞"],
+    "🌿": ["🌳", "🌱", "🏞️", "🌷", "🌞"],
+    "🌞": ["🌳", "🌱", "🏞️", "🌷", "🌿", "🌈"],
+
+    // 手続き・法律
+    "🧾": ["📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "📂", "📌", "🏛️", "💰", "🏫", "🏥", "🚌"],
+    "📋": ["🧾", "✅", "📑", "🖋️", "📄", "🔖", "📁", "📂", "📌", "🏛️"],
+    "✅": ["🧾", "📋", "📑", "🖋️", "📄", "🔖", "📁", "📂", "🏛️"],
+    "📑": ["🧾", "📋", "✅", "🖋️", "📄", "🔖", "📁", "📂", "🏛️"],
+    "🖋️": ["🧾", "📋", "✅", "📑", "📄", "🔖", "📁", "📂", "🏛️"],
+    "📄": ["🧾", "📋", "✅", "📑", "🖋️", "🔖", "📁", "📂", "🏛️"],
+    "🔖": ["🧾", "📋", "✅", "📑", "🖋️", "📄", "📁", "📂"],
+    "📁": ["🧾", "📋", "✅", "📑", "🖋️", "📄", "🔖", "📂", "🏛️"],
+    "📂": ["🧾", "📋", "✅", "📑", "🖋️", "📄", "🔖", "📁", "🏛️"],
+
+    // お金・支援
+    "💰": ["💳", "💵", "🏦", "💹", "📈", "💸", "🧾", "💼", "💱", "🏛️", "👪", "👶", "👴"],
+    "💳": ["💰", "💵", "🏦", "💹", "📈", "💸", "🧾", "💼", "💱"],
+    "💵": ["💰", "💳", "🏦", "💹", "📈", "💸", "🧾", "💼", "💱"],
+    "💹": ["💰", "💳", "💵", "🏦", "📈", "💸", "🧾", "💼"],
+    "📈": ["💰", "💳", "💵", "🏦", "💹", "💸", "🧾", "💼"],
+    "💸": ["💰", "💳", "💵", "🏦", "💹", "📈", "🧾", "💼"],
+    "💼": ["💰", "💳", "💵", "🏦", "💹", "📈", "💸", "🧾", "🏢"],
+    "💱": ["💰", "💳", "💵", "🏦"],
+
+    // 文化・イベント
+    "🎭": ["🎬", "🎨", "🎤", "🎪", "🎻", "🎮", "📚", "🏛️", "🎟️", "👪", "👶", "🧸"],
+    "🎬": ["🎭", "🎨", "🎤", "🎪", "🎻", "🎮", "📚", "🏛️", "🎟️"],
+    "🎨": ["🎭", "🎬", "🎤", "🎪", "🎻", "🎮", "📚", "🏛️", "🎟️", "🏫"],
+    "🎤": ["🎭", "🎬", "🎨", "🎪", "🎻", "🎮", "📚", "🏛️", "🎟️"],
+    "🎪": ["🎭", "🎬", "🎨", "🎤", "🎻", "🎮", "📚", "🏛️", "🎟️"],
+    "🎻": ["🎭", "🎬", "🎨", "🎤", "🎪", "🎮", "📚", "🏛️", "🎟️", "🏫"],
+    "🎮": ["🎭", "🎬", "🎨", "🎤", "🎪", "🎻", "📚", "🏛️", "🎟️", "🧸"],
+    "📚": ["🎭", "🎬", "🎨", "🎤", "🎪", "🎻", "🎮", "🏛️", "🎟️", "🏫"],
+    "🎟️": ["🎭", "🎬", "🎨", "🎤", "🎪", "🎻", "🎮", "📚", "🏛️"],
+
+    // 食事・健康
+    "🍽️": ["🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞", "🍰", "🏥", "👪", "👶"],
+    "🍲": ["🍽️", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞", "🍰"],
+    "🍱": ["🍽️", "🍲", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞", "🍰"],
+    "🥗": ["🍽️", "🍲", "🍱", "🍜", "🍳", "🍖", "🥘", "🍞", "🍰", "🏥"],
+    "🍜": ["🍽️", "🍲", "🍱", "🥗", "🍳", "🍖", "🥘", "🍞", "🍰"],
+    "🍳": ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍖", "🥘", "🍞", "🍰"],
+    "🍖": ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🥘", "🍞", "🍰"],
+    "🥘": ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🍞", "🍰"],
+    "🍞": ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍰"],
+    "🍰": ["🍽️", "🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞"],
+  }
 
   // サブカテゴリーの絵文字
   const subCategories: Record<string, string[]> = {
@@ -56,17 +196,93 @@ export default function Home() {
     "🎭": ["🎬", "🎨", "🎤", "🎪", "🎻", "🎮", "📚", "🏛️", "🎟️"],
     "🍽️": ["🍲", "🍱", "🥗", "🍜", "🍳", "🍖", "🥘", "🍞", "🍰"],
     "🏛️": ["🏛️", "🏯", "🗽", "⛪️", "🕌", "🕍", "🛕", "⛩️", "🕋"],
-    "📱": ["📱", "💻", "🖥️", "⌨️", "🖱️", "🖨️", "🕹️", "🎮", "📡"],
+    "🏢": ["🏢", "🏬", "🏭", "🏗️", "🏚️", "🏘️", "🏙️", "🏣", "🏪"],
+  }
+
+  // 選択された絵文字に関連する絵文字を取得
+  const getRelatedEmojisForSelection = (emoji: string): string[] => {
+    if (!emoji || !emojiRelations[emoji]) {
+      return []
+    }
+    return emojiRelations[emoji].filter((e) => e !== emoji)
+  }
+
+  // 関連する絵文字の取得（再検索用）
+  const getRelatedEmojis = () => {
+    if (!firstEmoji) return []
+
+    // 選択された絵文字に関連する絵文字を取得
+    const relatedEmojis = getRelatedEmojisForSelection(firstEmoji)
+
+    // 関連絵文字がない場合は、すべてのカテゴリーからランダムに選択
+    if (relatedEmojis.length === 0) {
+      const allEmojis: string[] = []
+      emojiCategories.forEach((category) => {
+        category.emojis.forEach((emoji) => {
+          if (emoji !== firstEmoji && emoji !== secondEmoji) {
+            allEmojis.push(emoji)
+          }
+        })
+      })
+      // ランダムに6つ選択
+      return allEmojis.sort(() => 0.5 - Math.random()).slice(0, 6)
+    }
+
+    // 関連絵文字が6つ以上ある場合はランダムに6つ選択
+    if (relatedEmojis.length > 6) {
+      return relatedEmojis.sort(() => 0.5 - Math.random()).slice(0, 6)
+    }
+
+    return relatedEmojis
+  }
+
+  // 絵文字のカテゴリーを取得
+  const getEmojiCategory = (emoji: string): EmojiCategory | null => {
+    for (const category of emojiCategories) {
+      if (category.emojis.includes(emoji)) {
+        return category
+      }
+    }
+    return null
+  }
+
+  // 絵文字の組み合わせの意味を取得
+  const getEmojiCombinationMeaning = (first: string, second: string) => {
+    // 実際のアプリでは、APIからデータを取得したり、より複雑なロジックを実装する
+    const combinations: Record<string, string> = {
+      "🏫👪": "学校の子育て支援サービス",
+      "🏫🧾": "学校の手続き・申請",
+      "🏥👪": "子ども医療サービス",
+      "🏥🧾": "医療費助成・手続き",
+      "👪💰": "子育て支援金・助成金",
+      "👪🏛️": "子育て行政サービス",
+      "🚌👪": "子ども向け交通サービス",
+      "🚌🧾": "交通関連の手続き",
+      "🌳👪": "親子で楽しめる公園・施設",
+      "🌳🧾": "環境関連の手続き",
+      "🧾💰": "助成金・給付金の申請",
+      "🧾🏛️": "行政手続き・申請",
+      "💰🏛️": "行政の補助金・助成金",
+      "💰🏥": "医療費助成・支援",
+      "🎭👪": "子ども向け文化イベント",
+      "🎭🏛️": "公共文化施設・イベント",
+      "🍽️👪": "子ども食堂・給食サービス",
+      "🍽️🧾": "食品関連の手続き・申請",
+    }
+
+    const key = `${first}${second}`
+    return combinations[key] || `${first}と${second}に関するサービス`
   }
 
   // 検索結果のサンプルデータ
   const getSearchResults = (first: string, second: string) => {
     // 実際のアプリでは、APIからデータを取得する
+    const meaning = getEmojiCombinationMeaning(first, second)
     const results = [
       {
         id: "1",
         title: `${first}${second}`,
-        description: "サービス1",
+        description: meaning,
         icon: "🏛️",
         location: "🗾 中央区",
         time: "🕒 9:00-17:00",
@@ -75,7 +291,7 @@ export default function Home() {
       {
         id: "2",
         title: `${first}${second}`,
-        description: "サービス2",
+        description: meaning,
         icon: "🏢",
         location: "🗾 北区",
         time: "🕒 8:30-18:00",
@@ -84,7 +300,7 @@ export default function Home() {
       {
         id: "3",
         title: `${first}${second}`,
-        description: "サービス3",
+        description: meaning,
         icon: "🏤",
         location: "🗾 南区",
         time: "🕒 10:00-16:00",
@@ -93,7 +309,7 @@ export default function Home() {
       {
         id: "4",
         title: `${first}${second}`,
-        description: "サービス4",
+        description: meaning,
         icon: "🏨",
         location: "🗾 西区",
         time: "🕒 9:00-19:00",
@@ -102,7 +318,7 @@ export default function Home() {
       {
         id: "5",
         title: `${first}${second}`,
-        description: "サービス5",
+        description: meaning,
         icon: "🏫",
         location: "🗾 東区",
         time: "🕒 8:00-16:00",
@@ -111,29 +327,11 @@ export default function Home() {
       {
         id: "6",
         title: `${first}${second}`,
-        description: "サービス6",
+        description: meaning,
         icon: "🏥",
         location: "🗾 中央区",
         time: "🕒 24時間",
         contact: "📞 03-ZZZZ-YYYY",
-      },
-      {
-        id: "7",
-        title: `${first}${second}`,
-        description: "サービス7",
-        icon: "🏦",
-        location: "🗾 北区",
-        time: "🕒 9:00-15:00",
-        contact: "📞 03-WWWW-XXXX",
-      },
-      {
-        id: "8",
-        title: `${first}${second}`,
-        description: "サービス8",
-        icon: "🏭",
-        location: "🗾 南区",
-        time: "🕒 8:00-17:00",
-        contact: "📞 03-WWWW-YYYY",
       },
     ]
     return results
@@ -143,7 +341,20 @@ export default function Home() {
   const executeSearch = () => {
     if (firstEmoji && secondEmoji) {
       setShowResults(true)
+      setShowRelatedEmojis(false)
     }
+  }
+
+  // 再検索用の絵文字を表示
+  const showRelatedEmojisForSearch = () => {
+    setShowRelatedEmojis(true)
+  }
+
+  // 絵文字を選択して再検索
+  const selectEmojiForResearch = (emoji: string) => {
+    setSecondEmoji(emoji)
+    setShowResults(true)
+    setShowRelatedEmojis(false)
   }
 
   const handleBackButton = () => {
@@ -151,8 +362,17 @@ export default function Home() {
       // 詳細画面から検索結果一覧に戻る
       setShowDetail(null)
     } else if (showResults) {
-      // 検索結果一覧からホーム画面に戻る
-      setShowResults(false)
+      if (showRelatedEmojis) {
+        // 関連絵文字選択画面から検索結果に戻る
+        setShowRelatedEmojis(false)
+      } else {
+        // 検索結果一覧からホーム画面に戻る
+        setShowResults(false)
+      }
+    } else if (isSelectingSecond) {
+      // 2つ目の絵文字選択からホーム画面に戻る
+      setIsSelectingSecond(false)
+      setFirstEmoji(null)
     } else {
       // ホーム画面の場合は何もしない
       return
@@ -167,6 +387,8 @@ export default function Home() {
     setShowDetail(null)
     setShowAiChat(false)
     setAiMessage("")
+    setIsSelectingSecond(false)
+    setShowRelatedEmojis(false)
   }
 
   // AIチャットを開く
@@ -197,6 +419,18 @@ export default function Home() {
   // メニューを開く/閉じる
   const toggleMenu = () => {
     setShowMenu(!showMenu)
+  }
+
+  // 絵文字を選択
+  const selectEmoji = (emoji: string) => {
+    if (!firstEmoji) {
+      setFirstEmoji(emoji)
+      setIsSelectingSecond(true)
+    } else if (isSelectingSecond) {
+      setSecondEmoji(emoji)
+      setIsSelectingSecond(false)
+      executeSearch()
+    }
   }
 
   // ドラッグ開始ハンドラー
@@ -320,13 +554,13 @@ export default function Home() {
         {/* アプリコンテンツ */}
         <div className="h-full bg-gradient-to-b from-blue-50 to-purple-50 p-4 pb-20 overflow-y-auto">
           {/* ヘッダー */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-4">
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={showDetail || showResults ? handleBackButton : resetSelection}
+              onClick={showDetail || showResults || isSelectingSecond ? handleBackButton : resetSelection}
               className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center"
             >
-              {showDetail || showResults ? (
+              {showDetail || showResults || isSelectingSecond ? (
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               ) : (
                 <HomeIcon className="h-5 w-5 text-gray-600" />
@@ -341,11 +575,11 @@ export default function Home() {
             </motion.button>
           </div>
 
-          {/* ホーム画面 */}
+          {/* ホーム画面またはサブカテゴリー選択画面 */}
           {!showResults && !showDetail && (
             <>
               {/* 絵文字選択インジケーター */}
-              <div className="flex items-center justify-center mb-8 mt-4">
+              <div className="flex items-center justify-center mb-6 mt-2">
                 <motion.div
                   ref={firstDropRef}
                   className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl 
@@ -382,32 +616,90 @@ export default function Home() {
                 )}
               </div>
 
+              {isSelectingSecond && firstEmoji && (
+                <div className="mb-4 text-center">
+                  <p className="text-sm text-gray-600 bg-white/70 rounded-full px-4 py-1 inline-block">
+                    {firstEmoji} と組み合わせる絵文字を選んでください
+                  </p>
+                </div>
+              )}
+
+              {/* カテゴリータブ */}
+              {!isSelectingSecond && (
+                <div className="mb-4 overflow-x-auto">
+                  <div className="flex space-x-2 pb-2">
+                    {emojiCategories.map((category, index) => (
+                      <motion.button
+                        key={index}
+                        className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap ${
+                          activeCategory === index
+                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md"
+                            : "bg-white text-gray-700"
+                        }`}
+                        onClick={() => setActiveCategory(index)}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {category.name}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* 絵文字選択グリッド */}
               <div className="grid grid-cols-4 gap-3">
-                {(firstEmoji ? subCategories[firstEmoji] : mainCategories).map((emoji) => (
-                  <motion.div
-                    key={emoji}
-                    className="flex items-center justify-center h-24 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing"
-                    style={{ background: "linear-gradient(to bottom right, #f0f4ff, #ffffff)" }}
-                    onMouseDown={(e) => handleDragStart(emoji, e)}
-                    onTouchStart={(e) => handleTouchStart(emoji, e)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {emoji}
-                  </motion.div>
-                ))}
+                {isSelectingSecond && firstEmoji
+                  ? getRelatedEmojisForSelection(firstEmoji).map((emoji) => (
+                      <motion.div
+                        key={emoji}
+                        className={`flex items-center justify-center h-24 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br ${
+                          getEmojiCategory(emoji)?.color || "from-blue-100 to-blue-50"
+                        }`}
+                        onMouseDown={(e) => handleDragStart(emoji, e)}
+                        onTouchStart={(e) => handleTouchStart(emoji, e)}
+                        onClick={() => selectEmoji(emoji)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {emoji}
+                      </motion.div>
+                    ))
+                  : emojiCategories[activeCategory].emojis.map((emoji) => (
+                      <motion.div
+                        key={emoji}
+                        className={`flex items-center justify-center h-24 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br ${emojiCategories[activeCategory].color}`}
+                        onMouseDown={(e) => handleDragStart(emoji, e)}
+                        onTouchStart={(e) => handleTouchStart(emoji, e)}
+                        onClick={() => selectEmoji(emoji)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {emoji}
+                      </motion.div>
+                    ))}
+              </div>
+
+              {/* カテゴリーの説明 */}
+              <div className="mt-4 text-center">
+                {isSelectingSecond && firstEmoji ? (
+                  <p className="text-xs text-gray-500">{firstEmoji}に関連する絵文字を選んでください</p>
+                ) : (
+                  <p className="text-xs text-gray-500">{emojiCategories[activeCategory].name}のサービスを探す</p>
+                )}
               </div>
             </>
           )}
 
           {/* 検索結果画面 */}
-          {showResults && firstEmoji && secondEmoji && !showDetail && (
+          {showResults && firstEmoji && secondEmoji && !showDetail && !showRelatedEmojis && (
             <div className="space-y-4 overflow-y-auto">
-              <div className="flex items-center justify-center mb-6 bg-white p-3 rounded-xl shadow-sm">
-                <span className="text-3xl">{firstEmoji}</span>
-                <span className="mx-2 text-xl text-purple-500">+</span>
-                <span className="text-3xl">{secondEmoji}</span>
+              <div className="flex flex-col items-center justify-center mb-6 bg-white p-3 rounded-xl shadow-sm">
+                <div className="flex items-center">
+                  <span className="text-3xl">{firstEmoji}</span>
+                  <span className="mx-2 text-xl text-purple-500">+</span>
+                  <span className="text-3xl">{secondEmoji}</span>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">{getEmojiCombinationMeaning(firstEmoji, secondEmoji)}</p>
               </div>
 
               {/* 検索結果カード */}
@@ -425,6 +717,7 @@ export default function Home() {
                         <span className="text-3xl mr-3">{result.icon}</span>
                         <span className="text-2xl">{result.title}</span>
                       </div>
+                      <p className="text-sm text-gray-600 mb-2">{result.description}</p>
                       <div className="flex flex-wrap gap-2 text-sm text-gray-600">
                         <div className="bg-gray-100 rounded-full px-3 py-1">{result.location}</div>
                         <div className="bg-gray-100 rounded-full px-3 py-1">{result.time}</div>
@@ -433,6 +726,17 @@ export default function Home() {
                   </motion.div>
                 ))}
               </div>
+
+              {/* 再検索ボタン */}
+              <motion.button
+                className="w-full py-3 mt-4 bg-white rounded-xl shadow-md flex items-center justify-center"
+                onClick={showRelatedEmojisForSearch}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="text-xl mr-2">🔄</span>
+                <span className="text-sm">別の絵文字で再検索</span>
+              </motion.button>
 
               {/* AIボタン */}
               <motion.button
@@ -447,14 +751,49 @@ export default function Home() {
             </div>
           )}
 
+          {/* 関連絵文字選択画面 */}
+          {showRelatedEmojis && firstEmoji && (
+            <div className="space-y-4">
+              <div className="flex flex-col items-center justify-center mb-6 bg-white p-3 rounded-xl shadow-sm">
+                <div className="flex items-center">
+                  <span className="text-3xl">{firstEmoji}</span>
+                  <span className="mx-2 text-xl text-purple-500">+</span>
+                  <span className="text-3xl">❓</span>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">{firstEmoji}と組み合わせる別の絵文字を選んでください</p>
+              </div>
+
+              {/* 関連絵文字グリッド */}
+              <div className="grid grid-cols-3 gap-4">
+                {getRelatedEmojis().map((emoji) => (
+                  <motion.div
+                    key={emoji}
+                    className="flex flex-col items-center justify-center h-28 bg-white rounded-xl shadow-md cursor-pointer"
+                    onClick={() => selectEmojiForResearch(emoji)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="text-4xl mb-2">{emoji}</span>
+                    <div className="flex items-center">
+                      <span className="text-xl">{firstEmoji}</span>
+                      <span className="mx-1 text-sm text-purple-500">+</span>
+                      <span className="text-xl">{emoji}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* サービス詳細画面 */}
           {showDetail && firstEmoji && secondEmoji && (
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="p-5">
                 <div className="flex items-center mb-4">
                   <span className="text-4xl mr-3">🏛️</span>
-                  <span className="text-2xl">{firstEmoji + secondEmoji} サービス</span>
+                  <span className="text-2xl">{firstEmoji + secondEmoji}</span>
                 </div>
+                <p className="text-sm text-gray-600 mb-4">{getEmojiCombinationMeaning(firstEmoji, secondEmoji)}</p>
 
                 <div className="space-y-4 mb-6">
                   <div className="flex items-center">
@@ -598,8 +937,8 @@ export default function Home() {
           <motion.button className="flex flex-col items-center" whileTap={{ scale: 0.9 }}>
             <span className="text-2xl">🔔</span>
           </motion.button>
-          <motion.button className="flex flex-col items-center" whileTap={{ scale: 0.9 }} onClick={toggleMenu}>
-            <span className="text-2xl">📁</span>
+          <motion.button className="flex flex-col items-center" whileTap={{ scale: 0.9 }}>
+            <span className="text-2xl">⚙️</span>
           </motion.button>
         </div>
 
