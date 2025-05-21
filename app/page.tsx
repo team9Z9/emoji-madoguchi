@@ -6,6 +6,9 @@ import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, Wifi, Battery, X, HomeIcon } from "lucide-react"
 
+// 絵文字の定義
+const emojis = ["💰", "👶", "🧓", "📝", "🗑️", "🚑", "📍", "🏠", "🏥", "🏫"]
+
 // 絵文字カテゴリーの定義
 type EmojiCategory = {
   name: string
@@ -42,14 +45,14 @@ export default function Home() {
   // 長押し検出用のタイマー
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  // 検索履歴のサンプルデータ
-  const searchHistory = [
-    { firstEmoji: "🏫", secondEmoji: "🍼", description: "学校の子育て支援サービス" },
-    { firstEmoji: "🏥", secondEmoji: "👵", description: "高齢者医療サービス" },
-    { firstEmoji: "⚠️", secondEmoji: "🧯", description: "防災訓練・避難情報" },
-    { firstEmoji: "🗺️", secondEmoji: "🍱", description: "地域グルメ・観光スポット" },
-    { firstEmoji: "⚖️", secondEmoji: "👨‍👩‍👧", description: "家族法律相談" },
-    { firstEmoji: "🧠", secondEmoji: "📞", description: "メンタルヘルス相談窓口" },
+  // 検索履歴のサンプルデータを使い方マニュアルに変更し、数を減らす
+  const emojiCombinationGuide = [
+    { firstEmoji: "💰", secondEmoji: "👶", description: "子育て支援金" },
+    { firstEmoji: "💰", secondEmoji: "🏠", description: "住宅補助" },
+    { firstEmoji: "📝", secondEmoji: "🏫", description: "学校手続き" },
+    { firstEmoji: "🏥", secondEmoji: "🧓", description: "高齢者医療" },
+    { firstEmoji: "🚑", secondEmoji: "🏥", description: "救急医療" },
+    { firstEmoji: "🗑️", secondEmoji: "📝", description: "ごみ出し案内" },
   ]
 
   // 時間を更新
@@ -66,232 +69,32 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
 
-  // 絵文字カテゴリー - 新しい構成に更新
-  const emojiCategories: EmojiCategory[] = [
-    {
-      name: "暮らしの手続き・サポート",
-      icon: "🏠️",
-      color: "from-blue-100 to-blue-50",
-      emojis: ["📝", "🍼", "♿️", "💡", "🗑️", "💻", "🏘️", "📋"],
-    },
-    {
-      name: "利用する公共施設・生活の場",
-      icon: "🏢",
-      color: "from-green-100 to-green-50",
-      emojis: ["🏫", "🏥", "📚", "⛲️", "🏛️", "🏟️", "🏊‍♂️", "🎭"],
-    },
-    {
-      name: "防災・安全情報",
-      icon: "🚨",
-      color: "from-red-100 to-red-50",
-      emojis: ["⚠️", "🚒", "🚓", "🧯", "🌊", "🌪️", "🔥", "🚑"],
-    },
-    {
-      name: "地域活動・イベント",
-      icon: "🧑‍🤝‍🧑",
-      color: "from-yellow-100 to-yellow-50",
-      emojis: ["🎪", "🧑‍🍳", "🎨", "🎤", "🎮", "🧶", "🌱", "🏆"],
-    },
-    {
-      name: "交通・移動サポート",
-      icon: "🚗",
-      color: "from-purple-100 to-purple-50",
-      emojis: ["🚌", "🚕", "🅿️", "🚲", "🚶‍♀️", "🚆", "🛣️", "♿"],
-    },
-    {
-      name: "仕事・産業支援",
-      icon: "💼",
-      color: "from-amber-100 to-amber-50",
-      emojis: ["💼", "🏭", "💰", "📊", "🖥️", "🧑‍💼", "🌾", "🔧"],
-    },
-    {
-      name: "相談・サポート窓口",
-      icon: "📞",
-      color: "from-indigo-100 to-indigo-50",
-      emojis: ["⚖️", "🌐", "🏠", "👨‍👩‍👧", "🧠", "👵", "💼", "📚"],
-    },
-    {
-      name: "観光・地域案内",
-      icon: "📍",
-      color: "from-pink-100 to-pink-50",
-      emojis: ["🗺️", "🍱", "🏨", "🎌", "🏯", "🎁", "🚶‍♂️", "🚣‍♀️"],
-    },
-  ]
-
-  // 絵文字の説明 - 新しい構成に合わせて更新
+  // 絵文字の説明
   const emojiDescriptions: Record<string, string> = {
-    // 暮らしの手続き・サポート
-    "📝": "各種手続き・申請：書類作成／郵送・提出／予約・受付／マイナンバーカード申請など",
-    "🍼": "子育て・保育：子育て支援／保育園・幼稚園の利用",
-    "♿️": "高齢者・福祉支援：高齢者支援／生活支援／買い物支援（移動スーパー等）",
-    "💡": "ライフライン：電気・ガス・水道の手続き・連絡先",
-    "🗑️": "ごみ出し・清掃：ごみ収集日／分別方法／粗大ごみの出し方など",
-    "💻": "オンライン申請・デジタル手続き：電子申請／マイナポータル／オンライン相談",
-    "🏘️": "住宅・不動産関連手続き：住宅補助／公営住宅／リフォーム支援／固定資産税",
-    "📋": "証明書・住民票：各種証明書発行／住民票請求／印鑑登録",
-    "🏠️": "暮らしの手続き・サポート：日常生活に必要な各種手続きやサポート情報",
-
-    // 利用する公共施設・生活の場
-    "🏫": "教育機関：小中学校・高校／教育相談など",
-    "🏥": "医療機関：病院・診療所／休日診療など",
-    "📚": "文化施設：図書館／神社・寺／地域文化施設",
-    "⛲️": "運動・レクリエーション：公園／プール／運動施設",
-    "🏛️": "市役所・公民館：各種窓口の案内／施設利用予約など",
-    "🏟️": "スポーツ施設：体育館／競技場／グラウンド",
-    "🏊‍♂️": "プール・水泳施設：市民プール／水泳教室",
-    "🎭": "文化・芸術施設：劇場／美術館／コンサートホール",
-    "🏢": "公共施設・生活の場：地域で利用できる様々な公共施設の案内",
-
-    // 防災・安全情報
-    "⚠️": "災害・避難情報：避難所案内／避難マップ／台風・地震情報",
-    "🚒": "救急・消防：緊急連絡先／火災・事故対応",
-    "🚓": "防犯・警察：地域安全情報／防犯対策",
-    "🧯": "防災訓練・防災意識向上：地域の防災イベントやマニュアル",
-    "🌊": "水害・津波対策：洪水ハザードマップ／避難情報",
-    "🌪️": "風水害対策：台風・強風対策／避難情報",
-    "🔥": "火災予防：防火対策／消火器の使い方",
-    "🚑": "救急医療：応急処置／AED設置場所／救急病院案内",
-    "🚨": "防災・安全情報：地域の安全を守るための情報や緊急時の対応",
-
-    // 地域活動・イベント
-    "🎪": "地域イベント・交流：お祭り／地域集会／こどもイベントなど",
-    "🧑‍🍳": "講習・体験：料理教室／体験型ワークショップなど",
-    "🎨": "文化・芸術活動：絵画教室／工作教室／展示会",
-    "🎤": "音楽・パフォーマンス：カラオケ大会／音楽祭／コンサート",
-    "🎮": "ゲーム・娯楽：ゲーム大会／レクリエーション活動",
-    "🧶": "手芸・工芸：編み物教室／工芸品作り／伝統工芸",
-    "🌱": "環境活動：植樹活動／清掃活動／エコ活動",
-    "🏆": "スポーツ大会：地域運動会／スポーツ競技会／マラソン大会",
-    "🧑‍🤝‍🧑": "地域活動・イベント：地域のコミュニティ活動や参加できるイベント情報",
-
-    // 交通・移動サポート
-    "🚌": "地域の移動手段：地域バス／公共交通の時刻・路線",
-    "🚕": "タクシー・シェアサイクル：予約方法や利用エリア",
-    "🅿️": "駐車場案内：公共施設周辺の駐車場",
-    "🚲": "自転車利用：レンタサイクル／自転車道／駐輪場",
-    "🚶‍♀️": "徒歩・散策：ウォーキングコース／散策路／健康づくり",
-    "🚆": "電車・鉄道：駅情報／時刻表／運賃",
-    "🛣️": "道路情報：道路工事／交通規制／通行止め",
-    "♿": "バリアフリー移動：車いす対応施設／バリアフリールート",
-    "🚗": "交通・移動サポート：地域内の移動に関する情報やサービス",
-
-    // 仕事・産業支援
-    "💼": "就労・創業支援：求職サポート／起業相談／労働相談",
-    "🏭": "地場産業と補助金情報：補助金・助成金／地元企業の支援制度",
-    "💰": "融資・資金援助：中小企業向け融資／創業資金",
-    "📊": "経営相談：経営改善／事業計画／マーケティング",
-    "🖥️": "IT・デジタル支援：デジタル化支援／IT導入補助",
-    "🧑‍💼": "人材育成：職業訓練／スキルアップ講座／資格取得支援",
-    "🌾": "農林水産業支援：農業支援／漁業支援／林業支援",
-    "🔧": "技術・製造業支援：技術相談／製品開発／品質管理",
-
-    // 相談・サポート窓口
-    "⚖️": "法律相談・DV・虐待相談：法律問題／家庭内暴力／児童虐待／相談窓口",
-    "🌐": "外国人支援窓口：多言語対応／在留手続き／生活相談／通訳サービス",
-    "🏠": "生活困窮者支援：生活保護／住居確保給付金／自立支援／フードバンク",
-    "👨‍👩‍👧": "ひとり親・障がい者支援相談：児童扶養手当／障害福祉サービス／就労支援",
-    "🧠": "健康相談・メンタルヘルス：心の健康／ストレス対策／カウンセリング／相談窓口",
-    "👵": "高齢者相談：介護サービス／認知症相談／高齢者虐待防止／地域包括支援",
-    "💼": "就労支援相談：職業紹介／就職相談／キャリアカウンセリング／職業訓練",
-    "📚": "教育相談：不登校／いじめ／学習障害／発達相談／教育支援",
-    "📞": "相談・サポート窓口：様々な悩みや問題に対応する相談窓口の案内",
-
-    // 観光・地域案内
-    "🗺️": "観光スポット・名所：名所旧跡／地域の歴史紹介",
-    "🍱": "グルメ・特産品：ご当地料理／土産紹介",
-    "🏨": "宿泊施設情報：地域のホテル／旅館案内",
-    "🎌": "伝統文化・祭り：伝統行事／地域の祭り／文化体験",
-    "🏯": "歴史的建造物：城／寺社仏閣／史跡",
-    "🎁": "お土産・特産品：地域特産品／お土産店／伝統工芸品",
-    "🚶‍♂️": "観光ルート・散策コース：観光モデルコース／散策マップ／ガイドツアー",
-    "🚣‍♀️": "アウトドア・体験活動：自然体験／アクティビティ／体験型観光",
-    "📍": "観光・地域案内：地域の魅力や観光情報",
+    "💰": "給付金・補助金・助成：各種支援金や助成金に関する情報や申請方法",
+    "👶": "子育て・育児・出産：子育て支援サービスや出産に関する手続き",
+    "🧓": "高齢者支援・介護：高齢者向けサービスや介護保険に関する情報",
+    "📝": "手続き・申請・届出：各種行政手続きや申請方法の案内",
+    "🗑️": "ごみ出し・リサイクル・環境：ごみの分別方法やリサイクル情報",
+    "🚑": "救急・救命・医療緊急時：緊急時の対応や救急医療機関の案内",
+    "📍": "観光案内・周辺情報：地域の観光スポットや施設の案内",
+    "🏠": "住宅支援・居住・引っ越し：住宅補助や引っ越し手続きの情報",
+    "🏥": "医療・健康診断・予防接種：医療機関や健康診断、予防接種の案内",
+    "🏫": "教育・学習支援：学校教育や生涯学習に関する情報やサービス",
   }
 
-  // 絵文字の関連性マッピング - 新しい構成に合わせて更新
+  // 絵文字の関連性マッピング
   const emojiRelations: Record<string, string[]> = {
-    // 暮らしの手続き・サポート
-    "📝": ["🏛️", "🍼", "♿️", "💡", "🗑️", "💼", "🏭", "💻", "🏘️", "📋", "⚖️", "🌐"],
-    "🍼": ["📝", "🏫", "🏥", "♿️", "🎪", "🧑‍🍳", "🚌", "🏘️", "👨‍👩‍👧", "📚"],
-    "♿️": ["📝", "🏥", "💡", "🗑️", "🚌", "🚕", "🧑‍🤝‍🧑", "♿", "🚑", "👨‍👩‍👧", "👵"],
-    "💡": ["📝", "🗑️", "♿️", "🏛️", "⚠️", "🏘️", "📋", "🏠"],
-    "🗑️": ["📝", "💡", "♿️", "🏛️", "🧯", "🌱"],
-    "💻": ["📝", "🏛️", "💡", "🖥️", "📊", "🧑‍💼", "📋", "🌐"],
-    "🏘️": ["📝", "🍼", "💡", "♿️", "📋", "🏛️", "🏠"],
-    "📋": ["📝", "💡", "🏘️", "🏛️", "💻", "📊", "⚖️"],
-
-    // 利用する公共施設・生活の場
-    "🏫": ["🍼", "📚", "⛲️", "🎪", "🧑‍🍳", "🏟️", "🏊‍♂️", "🎭", "👨‍👩‍👧", "📚"],
-    "🏥": ["♿️", "🚒", "🚓", "⚠️", "🍼", "🚑", "🧠", "👵"],
-    "📚": ["🏫", "🏛️", "🧑‍🍳", "🎪", "🗺️", "🎭", "📚"],
-    "⛲️": ["🏫", "🎪", "🧑‍🍳", "🗺️", "🚌", "🏟️", "🏊‍♂️"],
-    "🏛️": ["📝", "💡", "🗑️", "📚", "⚠️", "🧯", "🏟️", "🎭", "⚖️", "🌐", "🏠"],
-    "🏟️": ["🏫", "⛲️", "🏛️", "🏊‍♂️", "🎭", "🏆"],
-    "🏊‍♂️": ["🏫", "⛲️", "🏟️", "🚌", "🏆"],
-    "🎭": ["🏫", "📚", "🏛️", "🏟️", "🎪", "🎨", "🎤"],
-
-    // 防災・安全情報
-    "⚠️": ["🚒", "🚓", "🧯", "🏛️", "🏥", "💡", "🌊", "🌪️", "🔥", "🚑", "⚖️"],
-    "🚒": ["⚠️", "🚓", "🧯", "🏥", "🔥", "🚑"],
-    "🚓": ["⚠️", "🚒", "🧯", "🎪", "🚑", "⚖️"],
-    "🧯": ["⚠️", "🚒", "🚓", "🏛️", "🧑‍🤝‍🧑", "🔥"],
-    "🌊": ["⚠️", "🚒", "🧯", "💡", "🌪️"],
-    "🌪️": ["⚠️", "🚒", "🧯", "🌊", "🔥"],
-    "🔥": ["⚠️", "🚒", "🧯", "🌪️", "🚑"],
-    "🚑": ["⚠️", "🚒", "🚓", "🏥", "🔥", "♿️", "🧠"],
-
-    // 地域活動・イベント
-    "🎪": ["🧑‍🍳", "🧑‍🤝‍🧑", "🏫", "📚", "⛲️", "🗺️", "🍱", "🎨", "🎤", "🎮", "🧶", "🌱", "🏆"],
-    "🧑‍🍳": ["🎪", "🧑‍🤝‍🧑", "🏫", "📚", "🍱", "🧶", "🌱"],
-    "🎨": ["🎪", "🧑‍🤝‍🧑", "🎭", "🧶", "📚", "🏫"],
-    "🎤": ["🎪", "🧑‍🤝‍🧑", "🎭", "🎮", "📚"],
-    "🎮": ["🎪", "🧑‍🤝‍🧑", "🎤", "🏆", "🏫"],
-    "🧶": ["🎪", "🧑‍🍳", "🎨", "🧑‍🤝‍🧑", "🌱"],
-    "🌱": ["🎪", "🧑‍🍳", "🧶", "🧑‍🤝‍🧑", "🗑️"],
-    "🏆": ["🎪", "🧑‍🤝‍🧑", "🏟️", "🏊‍♂️", "🎮"],
-
-    // 交通・移動サポート
-    "🚌": ["🚕", "🅿️", "🚗", "♿️", "🏫", "⛲️", "🚲", "🚶‍♀️", "🚆", "🛣️"],
-    "🚕": ["🚌", "🅿️", "🚗", "♿️", "🏨", "🚲", "🚆", "🛣️"],
-    "🅿️": ["🚌", "🚕", "🚗", "🏛️", "🏥", "⛲️", "🏨", "🚲", "🛣️"],
-    "🚲": ["🚌", "🚕", "🅿️", "🚗", "🚶‍♀️", "🛣️", "♿"],
-    "🚶‍♀️": ["🚌", "🚲", "🚆", "🛣️", "♿", "⛲️"],
-    "🚆": ["🚌", "🚕", "🚗", "🚶‍♀️", "🛣️", "♿"],
-    "🛣️": ["🚌", "🚕", "🅿️", "🚗", "🚲", "🚶‍♀️", "🚆", "♿"],
-    "♿": ["🚌", "🚕", "🚲", "🚶‍♀️", "🚆", "🛣️", "♿️", "🏥", "👨‍👩‍👧"],
-
-    // 仕事・産業支援
-    "💼": ["🏭", "📝", "🏛️", "🏢", "💰", "📊", "🖥️", "🧑‍💼", "🌾", "🔧", "💼"],
-    "🏭": ["💼", "📝", "🏛️", "🏢", "💰", "📊", "🖥️", "🧑‍💼", "🌾", "🔧"],
-    "💰": ["💼", "🏭", "📝", "📊", "🖥️", "🧑‍💼", "🌾", "🔧", "🏠"],
-    "📊": ["💼", "🏭", "💰", "🖥️", "🧑‍💼", "🌾", "🔧"],
-    "🖥️": ["💼", "🏭", "💰", "📊", "🧑‍💼", "💻", "🌐"],
-    "🧑‍💼": ["💼", "🏭", "💰", "📊", "🖥️", "🌾", "🔧", "💼"],
-    "🌾": ["💼", "🏭", "💰", "📊", "🧑‍💼", "🔧", "🌱"],
-    "🔧": ["💼", "🏭", "💰", "📊", "🧑‍💼", "🌾"],
-
-    // 相談・サポート窓口
-    "⚖️": ["📝", "🏛️", "⚠️", "🚓", "📋", "🌐", "🏠", "👨‍👩‍👧", "🧠", "👵", "💼", "📚"],
-    "🌐": ["📝", "💻", "🏛️", "⚖️", "🏠", "👨‍👩‍👧", "🧠", "👵", "💼", "📚", "🖥️"],
-    "🏠": ["💡", "🏘️", "🏛️", "⚖️", "🌐", "👨‍👩‍👧", "🧠", "👵", "💼", "📚", "💰"],
-    "👨‍👩‍👧": ["🍼", "♿️", "🏫", "⚖️", "🌐", "🏠", "🧠", "👵", "💼", "📚", "♿"],
-    "🧠": ["🏥", "🚑", "⚖️", "🌐", "🏠", "👨‍👩‍👧", "👵", "💼", "📚"],
-    "👵": ["♿️", "🏥", "⚖️", "🌐", "🏠", "👨‍👩‍👧", "🧠", "💼", "📚"],
-    "💼": ["💼", "🧑‍💼", "⚖️", "🌐", "🏠", "👨‍👩‍👧", "🧠", "👵", "📚"],
-    "📚": ["🏫", "📚", "⚖️", "🌐", "🏠", "👨‍👩‍👧", "🧠", "👵", "💼"],
-    "📞": ["⚖️", "🌐", "🏠", "👨‍👩‍👧", "🧠", "👵", "💼", "📚"],
-
-    // 観光・地域案内
-    "🗺️": ["🍱", "🏨", "🌟", "⛲️", "📚", "🎪", "🎌", "🏯", "🎁", "🚶‍♂️", "🚣‍♀️"],
-    "🍱": ["🗺️", "🏨", "🌟", "🧑‍🍳", "🎪", "🎌", "🎁"],
-    "🏨": ["🗺️", "🍱", "🌟", "🚕", "🅿️", "🎌", "🏯", "🎁", "🚶‍♂️", "🚣‍♀️"],
-    "🎌": ["🗺️", "🍱", "🏨", "🏯", "🎁", "🚶‍♂️"],
-    "🏯": ["🗺️", "🏨", "🎌", "🚶‍♂️", "📚"],
-    "🎁": ["🗺️", "🍱", "🏨", "🎌", "🚶‍♂️", "🚣‍♀️"],
-    "🚶‍♂️": ["🗺️", "🏨", "🎌", "🏯", "🎁", "🚣‍♀️"],
-    "🚣‍♀️": ["🗺️", "🏨", "🎁", "🚶‍♂️", "🎪", "🎮"],
-    "🌟": ["🗺️", "🍱", "🏨", "⛲️", "📚", "🎌", "🏯", "🎁", "🚶‍♂️", "🚣‍♀️"],
-    "📍": ["🗺️", "🍱", "🏨", "🎌", "🏯", "🎁", "🚶‍♂️", "🚣‍♀️"],
+    "💰": ["📝", "👶", "🧓", "🏠", "🏫", "🏥"],
+    "👶": ["💰", "📝", "🏥", "🏫", "🏠", "🗑️"],
+    "🧓": ["💰", "📝", "🏥", "🚑", "🏠", "🗑️"],
+    "📝": ["💰", "👶", "🧓", "🏠", "🏥", "🏫", "🗑️"],
+    "🗑️": ["📝", "👶", "🧓", "🏠"],
+    "🚑": ["🏥", "🧓", "👶"],
+    "📍": ["🏫", "🏥", "🏠"],
+    "🏠": ["💰", "📝", "👶", "🧓", "🗑️", "📍"],
+    "🏥": ["🚑", "👶", "🧓", "💰", "📝", "📍"],
+    "🏫": ["👶", "💰", "📝", "📍"],
   }
 
   // 選択された絵文字に関連する絵文字を取得
@@ -312,12 +115,10 @@ export default function Home() {
     // 関連絵文字がない場合は、すべてのカテゴリーからランダムに選択
     if (relatedEmojis.length === 0) {
       const allEmojis: string[] = []
-      emojiCategories.forEach((category) => {
-        category.emojis.forEach((emoji) => {
-          if (emoji !== firstEmoji && emoji !== secondEmoji) {
-            allEmojis.push(emoji)
-          }
-        })
+      emojis.forEach((emoji) => {
+        if (emoji !== firstEmoji && emoji !== secondEmoji) {
+          allEmojis.push(emoji)
+        }
       })
       // ランダムに6つ選択
       return allEmojis.sort(() => 0.5 - Math.random()).slice(0, 6)
@@ -332,11 +133,9 @@ export default function Home() {
   }
 
   // 絵文字のカテゴリーを取得
-  const getEmojiCategory = (emoji: string): EmojiCategory | null => {
-    for (const category of emojiCategories) {
-      if (category.emojis.includes(emoji)) {
-        return category
-      }
+  const getEmojiCategory = (emoji: string): string | null => {
+    if (emojis.includes(emoji)) {
+      return emojiDescriptions[emoji]?.split("：")[0] || null
     }
     return null
   }
@@ -802,42 +601,15 @@ export default function Home() {
                 </div>
               )}
 
-              {/* カテゴリータブ - 白黒スタイルに変更 */}
-              {(!isSelectingSecond || (isSelectingSecond && secondSelectionMode === "category")) && (
-                <div className="mb-4 overflow-x-auto">
-                  <div className="flex space-x-2 pb-2 bg-gray-100 p-2 rounded-xl">
-                    {emojiCategories.map((category, index) => (
-                      <motion.button
-                        key={index}
-                        className={`p-2 rounded-full text-lg whitespace-nowrap ${
-                          activeCategory === index
-                            ? "bg-white shadow-md text-black"
-                            : "bg-gray-200 text-gray-500 filter grayscale"
-                        }`}
-                        onClick={() => setActiveCategory(index)}
-                        whileTap={{ scale: 0.95 }}
-                        onMouseOver={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect()
-                          showTooltip(`category_${index}`, rect.left + rect.width / 2, rect.top - 10)
-                        }}
-                        onMouseOut={hideTooltip}
-                      >
-                        {category.icon}
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* カテゴリータブ - 削除 */}
 
               {/* 絵文字選択グリッド */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-5 gap-3">
                 {isSelectingSecond && firstEmoji && secondSelectionMode === "related"
                   ? getRelatedEmojisForSelection(firstEmoji).map((emoji) => (
                       <motion.div
                         key={emoji}
-                        className={`flex items-center justify-center h-24 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br ${
-                          getEmojiCategory(emoji)?.color || "from-blue-100 to-blue-50"
-                        }`}
+                        className="flex items-center justify-center h-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
                         onMouseDown={(e) => handleDragStart(emoji, e)}
                         onTouchStart={(e) => handleTouchStart(emoji, e)}
                         onTouchEnd={handleTouchEnd}
@@ -850,10 +622,10 @@ export default function Home() {
                         {emoji}
                       </motion.div>
                     ))
-                  : emojiCategories[activeCategory].emojis.map((emoji) => (
+                  : emojis.map((emoji) => (
                       <motion.div
                         key={emoji}
-                        className={`flex items-center justify-center h-24 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br ${emojiCategories[activeCategory].color}`}
+                        className="flex items-center justify-center h-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
                         onMouseDown={(e) => handleDragStart(emoji, e)}
                         onTouchStart={(e) => handleTouchStart(emoji, e)}
                         onTouchEnd={handleTouchEnd}
@@ -874,35 +646,33 @@ export default function Home() {
                   secondSelectionMode === "related" ? (
                     <p className="text-xs text-gray-500">{firstEmoji}に関連する絵文字を選んでください</p>
                   ) : (
-                    <p className="text-xs text-gray-500">
-                      {emojiCategories[activeCategory].name}から絵文字を選んでください
-                    </p>
+                    <p className="text-xs text-gray-500">組み合わせる絵文字を選んでください</p>
                   )
                 ) : (
-                  <p className="text-xs text-gray-500">{emojiCategories[activeCategory].name}のサービスを探す</p>
+                  <p className="text-xs text-gray-500">サービスを探す絵文字を選んでください</p>
                 )}
               </div>
 
               {/* 検索履歴 */}
               {!isSelectingSecond && (
-                <div className="mt-8">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">他の人はこんな検索をしています</h3>
-                  <div className="overflow-x-auto pb-4">
-                    <div className="flex space-x-3">
-                      {searchHistory.map((item, index) => (
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">よく使われる組み合わせ</h3>
+                  <div className="bg-white rounded-xl p-3 shadow-sm">
+                    <div className="grid grid-cols-3 gap-2">
+                      {emojiCombinationGuide.map((item, index) => (
                         <motion.div
                           key={index}
-                          className="flex-shrink-0 bg-white rounded-xl shadow-sm p-3 w-48"
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
+                          className="flex flex-col items-center bg-gray-50 rounded-lg p-2 cursor-pointer"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => searchFromHistory(item.firstEmoji, item.secondEmoji)}
                         >
-                          <div className="flex items-center justify-center mb-2">
-                            <span className="text-xl">{item.firstEmoji}</span>
-                            <span className="mx-1 text-sm text-purple-500">+</span>
-                            <span className="text-xl">{item.secondEmoji}</span>
+                          <div className="flex items-center justify-center">
+                            <span className="text-lg">{item.firstEmoji}</span>
+                            <span className="mx-0.5 text-xs text-purple-500">+</span>
+                            <span className="text-lg">{item.secondEmoji}</span>
                           </div>
-                          <p className="text-xs text-center text-gray-600 truncate">{item.description}</p>
+                          <p className="text-[10px] text-gray-600 truncate mt-1">{item.description}</p>
                         </motion.div>
                       ))}
                     </div>
@@ -1162,7 +932,7 @@ export default function Home() {
             {tooltipEmoji.startsWith("category_") ? (
               <div className="text-center">
                 <div className="text-lg font-bold mb-1">
-                  {emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name}
+                  {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
                 </div>
                 <div className="text-sm opacity-80">このカテゴリーから絵文字を選択</div>
               </div>
@@ -1175,7 +945,7 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="text-sm opacity-90">{emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}</div>
-                <div className="text-xs mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji)?.name || ""}</div>
+                <div className="text-xs mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}</div>
               </div>
             )}
           </div>
