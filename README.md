@@ -1,3 +1,10 @@
+ローカル起動方法
+```
+docker compose build
+
+docker compose up
+```
+
 # Emoji only website
 
 *Automatically synced with your [v0.dev](https://v0.dev) deployments*
