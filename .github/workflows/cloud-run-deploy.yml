@@ -32,17 +32,17 @@ jobs:
 
     - name: Configure Docker
       run: |
-        gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+        gcloud auth configure-docker us-central1-docker.pkg.dev
 
     - name: Build and Push Container
       run: |
-        docker build -t asia-northeast1-docker.pkg.dev/$PROJECT_ID/nextjs-repo/$SERVICE_NAME:${{ github.sha }} .
-        docker push asia-northeast1-docker.pkg.dev/$PROJECT_ID/nextjs-repo/$SERVICE_NAME:${{ github.sha }}
+        docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/nextjs-repo/$SERVICE_NAME:${{ github.sha }} .
+        docker push us-central1-docker.pkg.dev/$PROJECT_ID/nextjs-repo/$SERVICE_NAME:${{ github.sha }}
 
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy $SERVICE_NAME \
-          --image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/nextjs-repo/$SERVICE_NAME:${{ github.sha }} \
+          --image=us-central1-docker.pkg.dev/$PROJECT_ID/nextjs-repo/$SERVICE_NAME:${{ github.sha }} \
           --platform=managed \
           --region=$REGION \
           --allow-unauthenticated \
