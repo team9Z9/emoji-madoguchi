@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "../styles/globals.css";
-
 @keyframes slide-up {
   from {
     transform: translateY(100%);
