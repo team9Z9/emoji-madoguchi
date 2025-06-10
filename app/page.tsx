@@ -85,128 +85,88 @@ export default function Home() {
   }
 
   // 関連絵文字の説明を追加：
-
-  const relatedEmojiDescriptions: Record<string, string> = {
-    // 💰 (給付金・補助金・助成) の関連絵文字
-    "💳": "支払い方法・クレジットカード決済",
-    "🏦": "銀行・金融機関での手続き",
-    "📊": "収入・支出の統計・家計管理",
-    "💼": "就労支援・ビジネス関連",
-    "🎯": "目標設定・計画的な資金活用",
-    "📈": "経済成長・収入向上支援",
-    "💎": "価値ある支援・重要な制度",
-    "🔑": "重要な手続き・申請のポイント",
-    "📋": "申請書類・チェックリスト",
-    "⭐": "優遇制度・特別な支援",
-
-    // 👶 (子育て・育児・出産) の関連絵文字
-    "🍼": "授乳・乳児用品・ミルク代支援",
-    "👨‍👩‍👧‍👦": "家族支援・ファミリーサービス",
-    "🎈": "お祝い・出産祝い・記念品",
-    "🧸": "おもちゃ・子ども用品・遊び",
-    "🎪": "子ども向けイベント・娯楽施設",
-    "🍎": "栄養・離乳食・健康的な食事",
-    "📚": "絵本・教育・読み聞かせ",
-    "🎨": "創作活動・アート・習い事",
-    "🚼": "ベビーカー・育児用品・移動支援",
-    "🎵": "音楽・子守唄・情操教育",
-
-    // 👴 (高齢者支援・介護) の関連絵文字
-    "♿": "車椅子・移動支援・バリアフリー",
-    "🚶‍♂️": "歩行支援・リハビリ・健康維持",
-    "💊": "薬・医療・健康管理",
-    "🍵": "お茶・憩い・日常生活支援",
-    "🏥": "病院・医療機関・健康診断",
-    "👨‍⚕️": "医師・看護師・医療従事者",
-    "🛏️": "介護ベッド・休息・在宅ケア",
-    "🍽️": "食事サービス・栄養管理・配食",
-    "💰": "年金・給付金・経済支援",
-    "👥": "コミュニティ・社会参加・仲間",
-
-    // 📝 (手続き・申請・届出) の関連絵文字
-    "✍️": "記入・署名・書類作成",
-    "📄": "申請書・証明書・公的文書",
-    "🖊️": "ペン・筆記用具・記入道具",
-    "📮": "郵送・投函・書類提出",
-    "💻": "オンライン申請・電子手続き",
-    "📞": "電話相談・問い合わせ窓口",
-    "🕐": "受付時間・期限・スケジュール",
-    "✅": "確認・承認・手続き完了",
-    "📎": "書類添付・必要書類・クリップ",
-    "🔍": "検索・調査・情報確認",
-
-    // 🗑️ (ごみ出し・リサイクル・環境) の関連絵文字
-    "♻️": "リサイクル・資源回収・再利用",
-    "🌱": "環境保護・エコ・持続可能性",
-    "🌍": "地球環境・温暖化対策・自然保護",
-    "🧹": "清掃・掃除・美化活動",
-    "📦": "梱包材・段ボール・包装ごみ",
-    "🥤": "ペットボトル・飲料容器・分別",
-    "🍃": "自然・緑化・環境意識",
-    "🌳": "植樹・森林保護・緑の保全",
-    "💚": "環境愛・エコ意識・自然への愛",
-    "🔋": "電池・電子機器・適正処分",
-
-    // ⚠️ (災害・防災・緊急) の関連絵文字
-    "🚨": "警報・サイレン・緊急通報",
-    "🔥": "火災・消防・火事対策",
-    "🌊": "津波・洪水・水害対策",
-    "🗺️": "避難マップ・ハザードマップ・避難経路",
-    "📻": "防災ラジオ・緊急放送・情報収集",
-    "🎒": "非常持出袋・防災グッズ・備蓄品",
-    "🔦": "懐中電灯・停電対策・照明器具",
-    "🆘": "救助要請・緊急事態・SOS",
-    "🚑": "救急車・医療救護・応急処置",
-    "🌪️": "台風・竜巻・強風対策",
-
-    // 📍 (観光案内・周辺情報) の関連絵文字
-    "🍜": "ラーメン・グルメ・地域の味",
-    "⛩️": "神社・寺院・歴史的建造物",
-    "🏯": "城・史跡・文化財",
-    "🎌": "日本文化・伝統・祭り",
-    "🍣": "寿司・和食・地域特産品",
-    "🗾": "日本地図・地域情報・観光ルート",
-    "🚅": "新幹線・交通アクセス・移動手段",
-    "🎋": "七夕・季節イベント・地域行事",
-    "🌸": "桜・花見・季節の見どころ",
-    "📸": "写真撮影・記念・観光スポット",
-
-    // 🏠 (住宅支援・居住・引っ越し) の関連絵文字
-    "📦": "引っ越し荷物・梱包・搬送",
-    "🔑": "鍵・入居・住宅確保",
-    "🚚": "引っ越しトラック・運送・搬入",
-    "🛏️": "ベッド・家具・生活用品",
-    "🪑": "椅子・インテリア・住環境",
-    "💡": "電気・照明・ライフライン",
-    "🚿": "シャワー・水回り・設備",
-    "🌡️": "温度管理・冷暖房・快適性",
-    "📏": "測定・間取り・住宅設計",
-    "🎨": "インテリア・装飾・住空間",
-
-    // 🏥 (医療・健康診断・予防接種) の関連絵文字
-    "💉": "注射・予防接種・ワクチン",
-    "🩺": "聴診器・診察・健康チェック",
-    "💊": "薬・処方薬・治療",
-    "🌡️": "体温計・発熱・健康管理",
-    "❤️": "心臓・循環器・健康な心",
-    "🦷": "歯科・口腔ケア・歯の健康",
-    "👁️": "眼科・視力検査・目の健康",
-    "🧬": "DNA・遺伝子・先進医療",
-    "🩹": "絆創膏・応急処置・ケガの手当て",
-    "🏃‍♂️": "運動・健康維持・体力づくり",
-
-    // 🏫 (教育・学習支援) の関連絵文字
-    "📚": "教科書・参考書・学習教材",
-    "✏️": "鉛筆・筆記用具・勉強道具",
-    "🎓": "卒業・学位・教育成果",
-    "🧮": "そろばん・計算・数学教育",
-    "🔬": "顕微鏡・理科・実験・研究",
-    "🎨": "美術・芸術・創造性教育",
-    "🎵": "音楽・楽器・音楽教育",
-    "⚽": "体育・スポーツ・運動",
-    "🍎": "給食・栄養・先生への感謝",
-    "🌟": "成績・評価・優秀な成果",
-  }
+  const relatedEmojisByCategory: Record<string, Record<string, string>> = {
+    "給付金・補助金・助成": {
+      "💳": "支払い方法・クレジットカード決済",
+      "🏦": "銀行・金融機関での手続き",
+      "📊": "収入・支出の統計・家計管理",
+      "🧾": "領収書・明細書・経費処理",
+      "💰": "現金給付・助成金・補助金",
+      "🪙": "硬貨・小銭・少額支援",
+    },
+    "子育て・育児・出産": {
+      "🍼": "授乳・乳児用品・ミルク代支援",
+      "👨‍👩‍👧‍👦": "家族支援・ファミリーサービス",
+      "🎈": "お祝い・出産祝い・記念品",
+      "👶": "赤ちゃん・乳児・幼児対応",
+      "🚼": "ベビーサイン・乳児マーク・育児配慮",
+      "🎀": "出産準備・ギフト・記念グッズ",
+    },
+    "高齢者支援・介護": {
+      "♿": "車椅子・移動支援・バリアフリー",
+      "🚶‍♂️": "歩行支援・リハビリ・健康維持",
+      "👴": "おじいさん・高齢男性・高齢支援",
+      "👵": "おばあさん・高齢女性・介護サービス",
+      "🧓": "年配者・高齢者・福祉全般",
+      "🛏️": "介護ベッド・寝たきり支援",
+    },
+    "手続き・申請・届出": {
+      "✍️": "記入・署名・書類作成",
+      "📄": "申請書・証明書・公的文書",
+      "📮": "ポスト・郵送・申請提出",
+      "📬": "受取・通知・申請受付",
+      "📑": "添付書類・書類一式・記録",
+      "🗂️": "ファイル・整理・公的手続き",
+    },
+    "ごみ出し・リサイクル・環境": {
+      "♻️": "リサイクル・資源回収・再利用",
+      "🌱": "環境保護・エコ・持続可能性",
+      "🗑️": "ごみ箱・廃棄・不用品回収",
+      "🚮": "ごみ出しマナー・ポイ捨て禁止",
+      "🛢️": "有害廃棄物・処理対応",
+      "🌍": "地球環境・気候変動・環境意識",
+    },
+    "災害・防災・緊急": {
+      "🚨": "警報・サイレン・緊急通報",
+      "🔥": "火災・消防・火事対策",
+      "🌪️": "台風・竜巻・暴風警戒",
+      "🌊": "津波・洪水・海難対策",
+      "🆘": "緊急支援・避難支援・救援",
+      "🏚️": "倒壊・被災・災害家屋",
+    },
+    "観光案内・周辺情報": {
+      "🍜": "ラーメン・グルメ・地域の味",
+      "⛩️": "神社・寺院・歴史的建造物",
+      "🗺️": "観光地図・ガイド・名所紹介",
+      "🏞️": "自然・景勝地・公園",
+      "🎑": "行事・伝統文化・季節の風物詩",
+      "🛍️": "お土産・買い物・特産品",
+    },
+    "住宅支援・居住・引っ越し": {
+      "📦": "引っ越し荷物・梱包・搬送",
+      "🔑": "鍵・入居・住宅確保",
+      "🏠": "住宅・住まい・家族の暮らし",
+      "🧳": "引っ越し準備・移動支援",
+      "🚛": "引っ越しトラック・運搬車両",
+      "🛏️": "家具・住居設備・生活環境",
+    },
+    "医療・健康診断・予防接種": {
+      "💉": "注射・予防接種・ワクチン",
+      "🩺": "聴診器・診察・健康チェック",
+      "🏥": "病院・医療機関・診療",
+      "🧪": "検査・PCR・検体採取",
+      "🩻": "レントゲン・健康診断・画像診断",
+      "💊": "薬・処方・服薬管理",
+    },
+    "教育・学習支援": {
+      "📚": "教科書・参考書・学習教材",
+      "✏️": "鉛筆・筆記用具・勉強道具",
+      "🏫": "学校・学び舎・教育施設",
+      "🧑‍🏫": "教師・授業・教育支援",
+      "📝": "テスト・ノート・学力評価",
+      "🎓": "卒業・進学・学歴支援",
+    },
+  };
 
   // 選択された絵文字に関連する絵文字を取得
   const getRelatedEmojisForSelection = (emoji: string): string[] => {
@@ -985,21 +945,19 @@ export default function Home() {
               <div className="flex justify-center mb-4">
                 <div className="bg-white rounded-full p-1 shadow-sm">
                   <button
-                    className={`px-4 py-1.5 rounded-full text-xs ${
-                      secondSelectionMode === "related"
-                        ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                        : "text-gray-600"
-                    }`}
+                    className={`px-4 py-1.5 rounded-full text-xs ${secondSelectionMode === "related"
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                      : "text-gray-600"
+                      }`}
                     onClick={() => setSecondSelectionMode("related")}
                   >
                     関連絵文字
                   </button>
                   <button
-                    className={`px-4 py-1.5 rounded-full text-xs ${
-                      secondSelectionMode === "category"
-                        ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                        : "text-gray-600"
-                    }`}
+                    className={`px-4 py-1.5 rounded-full text-xs ${secondSelectionMode === "category"
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                      : "text-gray-600"
+                      }`}
                     onClick={() => setSecondSelectionMode("category")}
                   >
                     カテゴリー
@@ -1012,37 +970,37 @@ export default function Home() {
             <div className="grid grid-cols-5 gap-3 mb-4">
               {isSelectingSecond && firstEmoji && secondSelectionMode === "related"
                 ? getRelatedEmojisForSelection(firstEmoji).map((emoji) => (
-                    <motion.div
-                      key={emoji}
-                      className="flex items-center justify-center h-16 text-3xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
-                      onMouseDown={(e) => handleDragStart(emoji, e)}
-                      onTouchStart={(e) => handleTouchStart(emoji, e)}
-                      onTouchEnd={handleTouchEnd}
-                      onMouseOver={(e) => handleMouseOver(emoji, e)}
-                      onMouseOut={handleMouseOut}
-                      onClick={() => selectEmoji(emoji)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {emoji}
-                    </motion.div>
-                  ))
+                  <motion.div
+                    key={emoji}
+                    className="flex items-center justify-center h-16 text-3xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
+                    onMouseDown={(e) => handleDragStart(emoji, e)}
+                    onTouchStart={(e) => handleTouchStart(emoji, e)}
+                    onTouchEnd={handleTouchEnd}
+                    onMouseOver={(e) => handleMouseOver(emoji, e)}
+                    onMouseOut={handleMouseOut}
+                    onClick={() => selectEmoji(emoji)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {emoji}
+                  </motion.div>
+                ))
                 : emojis.map((emoji) => (
-                    <motion.div
-                      key={emoji}
-                      className="flex items-center justify-center h-16 text-3xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
-                      onMouseDown={(e) => handleDragStart(emoji, e)}
-                      onTouchStart={(e) => handleTouchStart(emoji, e)}
-                      onTouchEnd={handleTouchEnd}
-                      onMouseOver={(e) => handleMouseOver(emoji, e)}
-                      onMouseOut={handleMouseOut}
-                      onClick={() => selectEmoji(emoji)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {emoji}
-                    </motion.div>
-                  ))}
+                  <motion.div
+                    key={emoji}
+                    className="flex items-center justify-center h-16 text-3xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
+                    onMouseDown={(e) => handleDragStart(emoji, e)}
+                    onTouchStart={(e) => handleTouchStart(emoji, e)}
+                    onTouchEnd={handleTouchEnd}
+                    onMouseOver={(e) => handleMouseOver(emoji, e)}
+                    onMouseOut={handleMouseOut}
+                    onClick={() => selectEmoji(emoji)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {emoji}
+                  </motion.div>
+                ))}
             </div>
 
             {/* カテゴリーの説明 */}
@@ -1148,11 +1106,10 @@ export default function Home() {
                   {totalPages > 1 && (
                     <div className="flex justify-center items-center space-x-2 mt-6">
                       <motion.button
-                        className={`px-3 py-2 rounded-lg text-sm ${
-                          currentPage === 1
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
-                        }`}
+                        className={`px-3 py-2 rounded-lg text-sm ${currentPage === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
+                          }`}
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
                         whileTap={{ scale: 0.95 }}
@@ -1163,11 +1120,10 @@ export default function Home() {
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                         <motion.button
                           key={page}
-                          className={`px-3 py-2 rounded-lg text-sm ${
-                            currentPage === page
-                              ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                              : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
-                          }`}
+                          className={`px-3 py-2 rounded-lg text-sm ${currentPage === page
+                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                            : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
+                            }`}
                           onClick={() => setCurrentPage(page)}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -1176,11 +1132,10 @@ export default function Home() {
                       ))}
 
                       <motion.button
-                        className={`px-3 py-2 rounded-lg text-sm ${
-                          currentPage === totalPages
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
-                        }`}
+                        className={`px-3 py-2 rounded-lg text-sm ${currentPage === totalPages
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
+                          }`}
                         onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
                         whileTap={{ scale: 0.95 }}
