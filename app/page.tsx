@@ -872,27 +872,83 @@ export default function Home() {
     setIsDraggingOver(null)
   }
 
+  // API検索実行（絵文字2個選択時の検索ボタンから呼び出し）
+  const executeApiSearch = async () => {
+    if (!firstEmoji || !secondEmoji) return
+    setIsApiSearching(true)
+    setApiError(null)
+    setApiResults([])
+    setShowResults(false)
+    setShowDetail(null)
+    setShowRelatedEmojis(false)
+    try {
+      const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      })
+      const data = await res.json()
+      if (data.error) {
+        setApiError(data.error)
+      } else {
+        setApiResults(data.results || data.documents || data || [])
+        setViewMode("searchResults")
+      }
+    } catch (e) {
+      setApiError("検索に失敗しました")
+    }
+    setIsApiSearching(false)
+  }
+
+  const [isApiSearching, setIsApiSearching] = useState(false)
+  const [apiResults, setApiResults] = useState<any[]>([])
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<"home" | "searchResults" | "searchDetail">("home")
+  const [selectedResult, setSelectedResult] = useState<any | null>(null)
+
+  function handleBack(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+    event.preventDefault();
+    if (viewMode === "searchDetail") {
+      setViewMode("searchResults");
+      setSelectedResult(null);
+    } else if (viewMode === "searchResults") {
+      setViewMode("home");
+      setFirstEmoji(null);
+      setSecondEmoji(null);
+      setApiResults([]);
+      setApiError(null);
+    } else if (isSelectingSecond) {
+      setIsSelectingSecond(false);
+      setFirstEmoji(null);
+    }
+    // すでにホーム画面の場合は何もしない
+  }
+  function handleResultClick(item: any): void {
+    setSelectedResult(item);
+    setViewMode("searchDetail");
+  }
+  // ページネーション用
+  const totalResults = apiResults.length
+  const totalPages = Math.ceil(totalResults / resultsPerPage)
+  const paginatedResults = apiResults.slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage)
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
-      {/* アプリコンテンツ */}
       <div className="w-full max-w-md h-full p-4 pb-20 overflow-y-auto">
         {/* ヘッダー */}
         <div className="flex justify-between items-center mb-4">
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={showDetail || showResults || isSelectingSecond ? handleBackButton : resetSelection}
+            onClick={handleBack}
             className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center"
           >
-            {showDetail || showResults || isSelectingSecond ? (
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            ) : (
-              <HomeIcon className="h-5 w-5 text-gray-600" />
-            )}
+            <ArrowLeft className="h-5 w-5 text-gray-600" />
           </motion.button>
         </div>
 
-        {/* ホーム画面またはサブカテゴリー選択画面 */}
-        {!showResults && !showDetail && (
+        {/* ホーム画面 */}
+        {viewMode === "home" && (
           <>
             {/* 絵文字選択インジケーター */}
             <div className="flex items-center justify-center mb-6 mt-2">
@@ -921,14 +977,19 @@ export default function Home() {
                 {secondEmoji || "❓"}
               </motion.div>
               {firstEmoji && secondEmoji && (
-                <motion.button
-                  className="ml-4 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md"
-                  onClick={executeSearch}
-                  whileTap={{ scale: 0.9 }}
-                  whileHover={{ scale: 1.1 }}
-                >
-                  <span className="text-white text-xl">🔍</span>
-                </motion.button>
+                <>
+                  {/* 既存のローカル検索ボタンは削除または非表示にしてOK */}
+                  {/* <motion.button ... onClick={executeSearch}> ... </motion.button> */}
+                  <motion.button
+                    className="ml-4 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md"
+                    onClick={executeApiSearch}
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.1 }}
+                    aria-label="APIで検索"
+                  >
+                    <span className="text-white text-xl">🔍</span>
+                  </motion.button>
+                </>
               )}
             </div>
 
@@ -1045,223 +1106,175 @@ export default function Home() {
           </>
         )}
 
-        {/* 検索結果画面 */}
-        {showResults && firstEmoji && secondEmoji && !showDetail && !showRelatedEmojis && (
-          <div className="space-y-4 overflow-y-auto">
+        {/* 検索結果一覧 */}
+        {viewMode === "searchResults" && (
+          <div>
             <div className="flex flex-col items-center justify-center mb-6 bg-white p-3 rounded-xl shadow-sm">
               <div className="flex items-center">
                 <span className="text-3xl">{firstEmoji}</span>
                 <span className="mx-2 text-xl text-purple-500">+</span>
                 <span className="text-3xl">{secondEmoji}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">{getEmojiCombinationMeaning(firstEmoji, secondEmoji)}</p>
+              <p className="text-sm text-gray-600 mt-2">
+                {(firstEmoji && emojiDescriptions[firstEmoji]?.split("：")[0]) || firstEmoji} × {(secondEmoji && emojiDescriptions[secondEmoji]?.split("：")[0]) || secondEmoji} の検索結果
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                合計{totalResults}件の検索結果を表示しています
+              </p>
             </div>
+            <div className="grid grid-cols-1 gap-4">
+              {paginatedResults.map((item: any, i: number) => {
+                const doc = item.document?.derivedStructData || {};
+                const title =
+                  doc.title ||
+                  doc.htmlTitle ||
+                  "No title";
+                const snippet =
+                  doc.snippets?.[0]?.snippet ||
+                  doc.pagemap?.metatags?.[0]?.["og:description"] ||
+                  "";
+                // 公開日はsnippetの先頭に日付が含まれていれば抽出
+                let publishDate = "";
+                const snippetDateMatch = doc.snippets?.[0]?.snippet?.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
+                if (snippetDateMatch) {
+                  publishDate = formatDateToJapanese(snippetDateMatch[0]);
+                }
+                // サイト名
+                const siteName =
+                  doc.pagemap?.metatags?.[0]?.["og:site_name"] ||
+                  doc.displayLink ||
+                  "";
 
-            {(() => {
-              const allResults = getSearchResults(firstEmoji, secondEmoji)
-              const totalResults = allResults.length
-              const startIndex = (currentPage - 1) * resultsPerPage
-              const endIndex = startIndex + resultsPerPage
-              const currentResults = allResults.slice(startIndex, endIndex)
-              const totalPages = Math.ceil(totalResults / resultsPerPage)
-
-              return (
-                <>
-                  {/* 検索結果件数表示 */}
-                  <div className="text-sm text-gray-600 mb-4">
-                    {totalResults}件中 {startIndex + 1}-{Math.min(endIndex, totalResults)}件の結果を表示しています
-                  </div>
-
-                  {/* 検索結果カード */}
-                  <div className="grid grid-cols-1 gap-4">
-                    {currentResults.map((result) => (
-                      <motion.div
-                        key={result.id}
-                        className="bg-white rounded-xl shadow-md overflow-hidden"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => showDetailScreen(result.id)}
-                      >
-                        <div className="p-4">
-                          <h3 className="text-lg font-medium text-blue-600 hover:text-blue-800 mb-2 line-clamp-2 cursor-pointer">
-                            {result.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{result.content}</p>
-                          <div className="flex flex-col gap-1 text-xs text-gray-500">
-                            <div className="flex items-center">
-                              <span className="mr-1">📅</span>
-                              <span>{result.publishDate}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <span className="mr-1">🏢</span>
-                              <span className="truncate">{result.siteName}</span>
-                            </div>
-                          </div>
+                return (
+                  <motion.div
+                    key={i}
+                    className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleResultClick(item)}
+                  >
+                    <div className="p-4">
+                      {/* タイトル */}
+                      <h3 className="text-lg font-medium text-blue-600 hover:text-blue-800 mb-2 line-clamp-2">
+                        {title}
+                      </h3>
+                      {/* リード文 */}
+                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                        {snippet}
+                      </p>
+                      {/* 公開日・サイト名 */}
+                      <div className="flex items-center text-xs text-gray-500 gap-3">
+                        <div className="flex items-center">
+                          <span className="mr-1">📅</span>
+                          <span>{publishDate || <span className="text-gray-400">―</span>}</span>
                         </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* ページネーション */}
-                  {totalPages > 1 && (
-                    <div className="flex justify-center items-center space-x-2 mt-6">
-                      <motion.button
-                        className={`px-3 py-2 rounded-lg text-sm ${currentPage === 1
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
-                          }`}
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        前へ
-                      </motion.button>
-
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <motion.button
-                          key={page}
-                          className={`px-3 py-2 rounded-lg text-sm ${currentPage === page
-                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                            : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
-                            }`}
-                          onClick={() => setCurrentPage(page)}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          {page}
-                        </motion.button>
-                      ))}
-
-                      <motion.button
-                        className={`px-3 py-2 rounded-lg text-sm ${currentPage === totalPages
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
-                          }`}
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        次へ
-                      </motion.button>
+                        <div className="flex items-center">
+                          <span className="mr-1">🏦</span>
+                          <span>{siteName}</span>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </>
-              )
-            })()}
-
+                  </motion.div>
+                );
+              })}
+            </div>
+            {/* ページネーション */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-6">
+                <button
+                  className="px-3 py-1 rounded bg-gray-100 text-gray-600"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  前へ
+                </button>
+                <span className="px-2 text-sm">{currentPage} / {totalPages}</span>
+                <button
+                  className="px-3 py-1 rounded bg-gray-100 text-gray-600"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  次へ
+                </button>
+              </div>
+            )}
             {/* 再検索ボタン */}
-            <motion.button
-              className="w-full py-3 mt-4 bg-white rounded-xl shadow-md flex items-center justify-center"
-              onClick={showRelatedEmojisForSearch}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="text-xl mr-2">🔄</span>
-              <span className="text-sm">別の絵文字で再検索</span>
-            </motion.button>
-
-            {/* AIボタン */}
-            <motion.button
-              onClick={openAiChat}
-              className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-10"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              aria-label="AIアシスタントに質問する"
-            >
-              <span className="text-2xl">🤖</span>
-            </motion.button>
+            <div className="flex justify-center mt-6">
+              <button
+                className="px-4 py-2 rounded bg-white text-gray-700 shadow border border-gray-200 flex items-center gap-2"
+                onClick={() => {
+                  setViewMode("home")
+                  setFirstEmoji(null)
+                  setSecondEmoji(null)
+                  setApiResults([])
+                  setApiError(null)
+                  setCurrentPage(1)
+                }}
+              >
+                <span className="text-lg">🔄</span>
+                <span>別の絵文字で再検索</span>
+              </button>
+            </div>
           </div>
         )}
 
-        {/* 関連絵文字選択画面 */}
-        {showRelatedEmojis && firstEmoji && (
-          <div className="space-y-4">
-            <div className="flex flex-col items-center justify-center mb-6 bg-white p-3 rounded-xl shadow-sm">
-              <div className="flex items-center">
-                <span className="text-3xl">{firstEmoji}</span>
-                <span className="mx-2 text-xl text-purple-500">+</span>
-                <span className="text-3xl">❓</span>
+        {/* 検索結果詳細 */}
+        {viewMode === "searchDetail" && selectedResult && (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="p-6">
+              {/* タイトル */}
+              <h1 className="text-xl font-bold text-gray-900 mb-3 leading-relaxed">
+                {selectedResult.document?.derivedStructData?.title ||
+                  selectedResult.title ||
+                  "No title"}
+              </h1>
+              {/* 詳細本文 */}
+              <div className="text-gray-700 mb-4 whitespace-pre-line">
+                {selectedResult.document?.derivedStructData?.fullContent ||
+                  selectedResult.fullContent ||
+                  selectedResult.document?.derivedStructData?.content ||
+                  selectedResult.content ||
+                  // ↓リード文（省略される場合があるので最後のフォールバック）
+                  selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet ||
+                  ""}
               </div>
-              <p className="text-sm text-gray-600 mt-2">{firstEmoji}と組み合わせる別の絵文字を選んでください</p>
-            </div>
-
-            {/* 関連絵文字グリッド */}
-            <div className="grid grid-cols-3 gap-4">
-              {getRelatedEmojis().map((emoji) => (
-                <motion.div
-                  key={emoji}
-                  className="flex flex-col items-center justify-center h-28 bg-white rounded-xl shadow-md cursor-pointer"
-                  onClick={() => selectEmojiForResearch(emoji)}
-                  onMouseOver={(e) => handleMouseOver(emoji, e)}
-                  onMouseOut={handleMouseOut}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="text-4xl mb-2">{emoji}</span>
-                  <div className="flex items-center">
-                    <span className="text-xl">{firstEmoji}</span>
-                    <span className="mx-1 text-sm text-purple-500">+</span>
-                    <span className="text-xl">{emoji}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 記事詳細画面 */}
-        {showDetail &&
-          firstEmoji &&
-          secondEmoji &&
-          (() => {
-            const article = getArticleDetail(showDetail, firstEmoji, secondEmoji)
-            if (!article) return null
-
-            return (
-              <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                <div className="p-6">
-                  {/* 記事ヘッダー */}
-                  <div className="mb-6">
-                    <h1 className="text-xl font-bold text-gray-900 mb-3 leading-relaxed">{article.title}</h1>
-                    <div className="flex flex-col gap-2 text-sm text-gray-500 border-b border-gray-200 pb-4">
-                      <div className="flex items-center">
-                        <span className="mr-2">📅</span>
-                        <span>公開日：{article.publishDate}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="mr-2">🔗</span>
-                        <span className="text-blue-600 break-all">{article.url}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 記事本文 */}
-                  <div className="prose prose-sm max-w-none">
-                    <div className="text-gray-700 leading-relaxed whitespace-pre-line">{article.fullContent}</div>
-                  </div>
-
-                  {/* フッター */}
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <div className="text-xs text-gray-500 text-center">
-                      この記事は{article.publishDate}に公開されました。
-                      <br />
-                      最新の情報については、担当窓口にお問い合わせください。
-                    </div>
-                  </div>
+              {/* 公開日・引用先URL */}
+              <div className="flex flex-col gap-2 text-sm text-gray-500 border-b border-gray-200 pb-4 mb-4">
+                <div className="flex items-center">
+                  <span className="mr-2">📅</span>
+                  <span>
+                    公開日：
+                    {
+                      // snippetの先頭から日付を抽出して日本語表記に変換
+                      (() => {
+                        const snippet = selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet || "";
+                        const match = snippet.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
+                        return match ? formatDateToJapanese(match[0]) : "";
+                      })()
+                    }
+                  </span>
                 </div>
-
-                {/* AIボタン */}
-                <motion.button
-                  onClick={openAiChat}
-                  className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-10"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label="AIアシスタントに質問する"
-                >
-                  <span className="text-2xl">🤖</span>
-                </motion.button>
+                <div className="flex items-center">
+                  <span className="mr-2">🔗</span>
+                  <a
+                    href={selectedResult.document?.derivedStructData?.link ||
+                      selectedResult.document?.derivedStructData?.url ||
+                      selectedResult.url ||
+                      "#"}
+                    className="text-blue-600 break-all"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {selectedResult.document?.derivedStructData?.link ||
+                      selectedResult.document?.derivedStructData?.url ||
+                      selectedResult.url ||
+                      ""}
+                  </a>
+                </div>
               </div>
-            )
-          })()}
+            </div>
+          </div>
+        )}
 
         {/* AIチャットモーダル */}
         {showAiChat && (
@@ -1362,4 +1375,16 @@ export default function Home() {
       )}
     </div>
   )
+}
+
+// 英語表記の日付を日本語表記に変換する関数
+function formatDateToJapanese(dateStr: string): string {
+  // 例: "Mar 1, 2023"
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr; // パースできなければそのまま返す
+  return date.toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
