@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, X, HomeIcon } from "lucide-react"
+import { formatDateToJapanese } from "../lib/date-format"
 
 // 絵文字の定義
 const emojis = ["💰", "👶", "👴", "📝", "🗑️", "⚠️", "📍", "🏠", "🏥", "🏫"]
@@ -928,6 +929,12 @@ export default function Home() {
     setSelectedResult(item);
     setViewMode("searchDetail");
   }
+
+  // ページネーション用
+  const totalResults = apiResults.length
+  const totalPages = Math.ceil(totalResults / resultsPerPage)
+  const paginatedResults = apiResults.slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage)
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       <div className="w-full max-w-md h-full p-4 pb-20 overflow-y-auto">
@@ -1113,44 +1120,104 @@ export default function Home() {
               <p className="text-sm text-gray-600 mt-2">
                 {(firstEmoji && emojiDescriptions[firstEmoji]?.split("：")[0]) || firstEmoji} × {(secondEmoji && emojiDescriptions[secondEmoji]?.split("：")[0]) || secondEmoji} の検索結果
               </p>
+
+              <p className="text-xs text-gray-500 mt-1">
+                合計{totalResults}件の検索結果を表示しています
+              </p>
             </div>
             <div className="grid grid-cols-1 gap-4">
-              {apiResults.map((item: any, i: number) => (
-                <motion.div
-                  key={i}
-                  className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleResultClick(item)}
-                >
-                  <div className="p-4">
-                    {/* タイトル */}
-                    <h3 className="text-lg font-medium text-blue-600 hover:text-blue-800 mb-2 line-clamp-2">
-                      {item.document?.derivedStructData?.title || item.title || "No title"}
-                    </h3>
-                    {/* TODO: 見出し文（リード文） */}
-                    <p className="text-sm text-gray-700 mb-2 line-clamp-2">
-                      {item.document?.derivedStructData?.content || item.content || ""}
-                    </p>
-                    {/* TODO: 公開日 */}
-                    <div className="flex items-center text-xs text-gray-500 mt-1">
-                      <span className="mr-1">📅</span>
-                      <span>
-                        {item.document?.derivedStructData?.publishDate || item.publishDate || ""}
-                      </span>
+              {paginatedResults.map((item: any, i: number) => {
+                const doc = item.document?.derivedStructData || {};
+                const title =
+                  doc.title ||
+                  doc.htmlTitle ||
+                  "No title";
+                const snippet =
+                  doc.snippets?.[0]?.snippet ||
+                  doc.pagemap?.metatags?.[0]?.["og:description"] ||
+                  "";
+                // 公開日はsnippetの先頭に日付が含まれていれば抽出
+                let publishDate = "";
+                const snippetDateMatch = doc.snippets?.[0]?.snippet?.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
+                if (snippetDateMatch) {
+                  publishDate = formatDateToJapanese(snippetDateMatch[0]);
+                }
+                // サイト名
+                const siteName =
+                  doc.pagemap?.metatags?.[0]?.["og:site_name"] ||
+                  doc.displayLink ||
+                  "";
+
+                return (
+                  <motion.div
+                    key={i}
+                    className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleResultClick(item)}
+                  >
+                    <div className="p-4">
+                      {/* タイトル */}
+                      <h3 className="text-lg font-medium text-blue-600 hover:text-blue-800 mb-2 line-clamp-2">
+                        {title}
+                      </h3>
+                      {/* リード文 */}
+                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                        {snippet}
+                      </p>
+                      {/* 公開日・サイト名 */}
+                      <div className="flex items-center text-xs text-gray-500 gap-3">
+                        <div className="flex items-center">
+                          <span className="mr-1">📅</span>
+                          <span>{publishDate || <span className="text-gray-400">―</span>}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="mr-1">🏦</span>
+                          <span>{siteName}</span>
+                        </div>
+                      </div>
                     </div>
-                    {/* TODO: サイト名 */}
-                    <div className="flex items-center text-xs text-gray-500 mt-1">
-                      <span className="mr-1">🏦</span>
-                      <span>
-                        {item.document?.derivedStructData?.siteName || item.siteName || ""}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
-            {/* TODO: ページネーションや再検索ボタンもここに */}
+            {/* ページネーション */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-6">
+                <button
+                  className="px-3 py-1 rounded bg-gray-100 text-gray-600"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  前へ
+                </button>
+                <span className="px-2 text-sm">{currentPage} / {totalPages}</span>
+                <button
+                  className="px-3 py-1 rounded bg-gray-100 text-gray-600"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  次へ
+                </button>
+              </div>
+            )}
+            {/* 再検索ボタン */}
+            <div className="flex justify-center mt-6">
+              <button
+                className="px-4 py-2 rounded bg-white text-gray-700 shadow border border-gray-200 flex items-center gap-2"
+                onClick={() => {
+                  setViewMode("home")
+                  setFirstEmoji(null)
+                  setSecondEmoji(null)
+                  setApiResults([])
+                  setApiError(null)
+                  setCurrentPage(1)
+                }}
+              >
+                <span className="text-lg">🔄</span>
+                <span>別の絵文字で再検索</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -1158,31 +1225,55 @@ export default function Home() {
         {viewMode === "searchDetail" && selectedResult && (
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-6">
+
+              {/* タイトル */}
               <h1 className="text-xl font-bold text-gray-900 mb-3 leading-relaxed">
-                {selectedResult.document?.derivedStructData?.title || selectedResult.title}
+                {selectedResult.document?.derivedStructData?.title ||
+                  selectedResult.title ||
+                  "No title"}
               </h1>
+              {/* 詳細本文 */}
+              <div className="text-gray-700 mb-4 whitespace-pre-line">
+                {selectedResult.document?.derivedStructData?.fullContent ||
+                  selectedResult.fullContent ||
+                  selectedResult.document?.derivedStructData?.content ||
+                  selectedResult.content ||
+                  // ↓リード文（省略される場合があるので最後のフォールバック）
+                  selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet ||
+                  ""}
+              </div>
+              {/* 公開日・引用先URL */}
               <div className="flex flex-col gap-2 text-sm text-gray-500 border-b border-gray-200 pb-4 mb-4">
                 <div className="flex items-center">
                   <span className="mr-2">📅</span>
                   <span>
-                    公開日：{selectedResult.document?.derivedStructData?.publishDate || ""}
+                    公開日：
+                    {
+                      // snippetの先頭から日付を抽出して日本語表記に変換
+                      (() => {
+                        const snippet = selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet || "";
+                        const match = snippet.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
+                        return match ? formatDateToJapanese(match[0]) : "";
+                      })()
+                    }
                   </span>
                 </div>
                 <div className="flex items-center">
                   <span className="mr-2">🔗</span>
                   <a
-                    href={selectedResult.document?.derivedStructData?.url}
+                    href={selectedResult.document?.derivedStructData?.link ||
+                      selectedResult.document?.derivedStructData?.url ||
+                      selectedResult.url ||
+                      "#"}
                     className="text-blue-600 break-all"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {selectedResult.document?.derivedStructData?.url}
+                    {selectedResult.document?.derivedStructData?.link ||
+                      selectedResult.document?.derivedStructData?.url ||
+                      selectedResult.url ||
+                      ""}
                   </a>
-                </div>
-              </div>
-              <div className="prose prose-sm max-w-none">
-                <div className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {selectedResult.document?.derivedStructData?.content || selectedResult.content}
                 </div>
               </div>
             </div>
