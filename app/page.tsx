@@ -1120,7 +1120,7 @@ export default function Home() {
               <p className="text-sm text-gray-600 mt-2">
                 {(firstEmoji && emojiDescriptions[firstEmoji]?.split("：")[0]) || firstEmoji} × {(secondEmoji && emojiDescriptions[secondEmoji]?.split("：")[0]) || secondEmoji} の検索結果
               </p>
-              
+
               <p className="text-xs text-gray-500 mt-1">
                 合計{totalResults}件の検索結果を表示しています
               </p>
@@ -1217,6 +1217,9 @@ export default function Home() {
                 <span className="text-lg">🔄</span>
                 <span>別の絵文字で再検索</span>
               </button>
+            </div>
+          </div>
+        )}
 
         {/* 検索結果詳細 */}
         {viewMode === "searchDetail" && selectedResult && (
