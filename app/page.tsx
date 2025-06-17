@@ -828,6 +828,503 @@ export default function Home() {
     };
     return categoryMap[tooltipEmoji] || "";
   }
+
+  // 関連フィルターの定義例（全組み合わせを追加）
+  const relatedFilters: { [key: string]: { icon: string; label: string; highlight?: boolean }[] } = {
+    "💰+👶": [
+      { icon: "👶", label: "子育て" },
+      { icon: "💴", label: "支援金", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🆔", label: "対象者・条件" },
+    ],
+    "💰+👴": [
+      { icon: "👴", label: "高齢者" },
+      { icon: "💴", label: "年金", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🏥", label: "医療" },
+    ],
+    "💰+🏠": [
+      { icon: "🏠", label: "住宅補助", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "💴", label: "家賃補助" },
+      { icon: "🚚", label: "引っ越し" },
+    ],
+    "💰+🏫": [
+      { icon: "🏫", label: "教育費" },
+      { icon: "💴", label: "奨学金", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "👶", label: "子ども" },
+    ],
+    "💰+🏥": [
+      { icon: "🏥", label: "医療費助成", highlight: true },
+      { icon: "💴", label: "健康保険" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "👴", label: "高齢者" },
+    ],
+    "💰+📝": [
+      { icon: "📝", label: "申請方法", highlight: true },
+      { icon: "💴", label: "給付金" },
+      { icon: "📄", label: "書類" },
+      { icon: "🏢", label: "窓口" },
+    ],
+    "💰+🗑️": [
+      { icon: "🗑️", label: "ごみ処理" },
+      { icon: "💴", label: "手数料" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "♻️", label: "リサイクル", highlight: true },
+    ],
+    "💰+⚠️": [
+      { icon: "⚠️", label: "災害支援", highlight: true },
+      { icon: "💴", label: "見舞金" },
+      { icon: "🏠", label: "住宅支援" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "💰+📍": [
+      { icon: "🗺️", label: "地域振興" },
+      { icon: "💴", label: "観光助成" },
+      { icon: "🏯", label: "観光スポット", highlight: true },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "👶+💰": [
+      { icon: "💴", label: "支援金", highlight: true },
+      { icon: "👶", label: "子育て" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🏫", label: "保育園" },
+    ],
+    "👶+👴": [
+      { icon: "👴", label: "祖父母" },
+      { icon: "👶", label: "孫育て" },
+      { icon: "🏠", label: "同居" },
+      { icon: "📝", label: "手続き" },
+    ],
+    "👶+🏠": [
+      { icon: "🏠", label: "子育て住宅", highlight: true },
+      { icon: "👶", label: "子育て" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🏫", label: "保育園" },
+    ],
+    "👶+🏫": [
+      { icon: "🏫", label: "入園・入学", highlight: true },
+      { icon: "👶", label: "子ども" },
+      { icon: "📝", label: "手続き" },
+      { icon: "📚", label: "学用品" },
+    ],
+    "👶+🏥": [
+      { icon: "🏥", label: "小児医療", highlight: true },
+      { icon: "👶", label: "予防接種" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "💉", label: "健康診断" },
+    ],
+    "👶+📝": [
+      { icon: "📝", label: "出生届", highlight: true },
+      { icon: "👶", label: "子育て" },
+      { icon: "🏫", label: "保育園" },
+      { icon: "🏠", label: "住所変更" },
+    ],
+    "👶+🗑️": [
+      { icon: "🗑️", label: "おむつ" },
+      { icon: "👶", label: "子育て" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "👶+⚠️": [
+      { icon: "⚠️", label: "防災" },
+      { icon: "👶", label: "子ども安全", highlight: true },
+      { icon: "🏠", label: "避難所" },
+      { icon: "📝", label: "手続き" },
+    ],
+    "👶+📍": [
+      { icon: "📍", label: "子育て施設", highlight: true },
+      { icon: "👶", label: "子ども" },
+      { icon: "🏫", label: "保育園" },
+      { icon: "🏠", label: "住宅" },
+    ],
+    "👴+💰": [
+      { icon: "💴", label: "年金", highlight: true },
+      { icon: "👴", label: "高齢者" },
+      { icon: "🏥", label: "医療" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "👴+👶": [
+      { icon: "👶", label: "孫育て" },
+      { icon: "👴", label: "祖父母" },
+      { icon: "🏠", label: "同居" },
+      { icon: "📝", label: "手続き" },
+    ],
+    "👴+🏠": [
+      { icon: "🏠", label: "高齢者住宅", highlight: true },
+      { icon: "👴", label: "バリアフリー" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🏥", label: "医療" },
+    ],
+    "👴+🏫": [
+      { icon: "🏫", label: "生涯学習", highlight: true },
+      { icon: "👴", label: "高齢者" },
+      { icon: "📚", label: "講座" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "👴+🏥": [
+      { icon: "🏥", label: "高齢者医療", highlight: true },
+      { icon: "👴", label: "健康診断" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "💴", label: "医療費助成" },
+    ],
+    "👴+📝": [
+      { icon: "📝", label: "介護申請", highlight: true },
+      { icon: "👴", label: "高齢者" },
+      { icon: "🏠", label: "住宅" },
+      { icon: "🏥", label: "医療" },
+    ],
+    "👴+🗑️": [
+      { icon: "🗑️", label: "ごみ出し支援", highlight: true },
+      { icon: "👴", label: "高齢者" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "👴+⚠️": [
+      { icon: "⚠️", label: "防災" },
+      { icon: "👴", label: "高齢者安全", highlight: true },
+      { icon: "🏠", label: "避難所" },
+      { icon: "📝", label: "手続き" },
+    ],
+    "👴+📍": [
+      { icon: "📍", label: "高齢者施設", highlight: true },
+      { icon: "👴", label: "高齢者" },
+      { icon: "🏥", label: "医療" },
+      { icon: "🏠", label: "住宅" },
+    ],
+    "📝+💰": [
+      { icon: "💴", label: "給付金", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "📄", label: "書類" },
+      { icon: "🏢", label: "窓口" },
+    ],
+    "📝+👶": [
+      { icon: "📝", label: "出生届", highlight: true },
+      { icon: "👶", label: "子育て" },
+      { icon: "🏫", label: "保育園" },
+      { icon: "🏠", label: "住所変更" },
+    ],
+    "📝+👴": [
+      { icon: "📝", label: "介護申請", highlight: true },
+      { icon: "👴", label: "高齢者" },
+      { icon: "🏠", label: "住宅" },
+      { icon: "🏥", label: "医療" },
+    ],
+    "📝+🏠": [
+      { icon: "🏠", label: "住所変更", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🚚", label: "引っ越し" },
+      { icon: "💴", label: "住宅補助" },
+    ],
+    "📝+🏫": [
+      { icon: "🏫", label: "入学手続き", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "📚", label: "学用品" },
+      { icon: "👶", label: "子ども" },
+    ],
+    "📝+🏥": [
+      { icon: "🏥", label: "医療費助成", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "💉", label: "健康診断" },
+      { icon: "👴", label: "高齢者" },
+    ],
+    "📝+🗑️": [
+      { icon: "🗑️", label: "ごみ出し", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "🏠", label: "住宅" },
+    ],
+    "📝+⚠️": [
+      { icon: "⚠️", label: "災害手続き", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🏠", label: "避難所" },
+      { icon: "👴", label: "高齢者" },
+    ],
+    "📝+📍": [
+      { icon: "📍", label: "施設案内", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🏫", label: "学校" },
+      { icon: "🏥", label: "医療" },
+    ],
+    "🏠+💰": [
+      { icon: "💴", label: "住宅補助", highlight: true },
+      { icon: "🏠", label: "住宅" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🚚", label: "引っ越し" },
+    ],
+    "🏠+👶": [
+      { icon: "🏠", label: "子育て住宅", highlight: true },
+      { icon: "👶", label: "子育て" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🏫", label: "保育園" },
+    ],
+    "🏠+👴": [
+      { icon: "🏠", label: "高齢者住宅", highlight: true },
+      { icon: "👴", label: "バリアフリー" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🏥", label: "医療" },
+    ],
+    "🏠+📝": [
+      { icon: "🏠", label: "住所変更", highlight: true },
+      { icon: "📝", label: "申請方法" },
+      { icon: "🚚", label: "引っ越し" },
+      { icon: "💴", label: "住宅補助" },
+    ],
+    "🏠+🏫": [
+      { icon: "🏫", label: "学区案内", highlight: true },
+      { icon: "🏠", label: "住宅" },
+      { icon: "👶", label: "子ども" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏠+🏥": [
+      { icon: "🏥", label: "近隣医療", highlight: true },
+      { icon: "🏠", label: "住宅" },
+      { icon: "👴", label: "高齢者" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏠+🗑️": [
+      { icon: "🗑️", label: "ごみ出し案内", highlight: true },
+      { icon: "🏠", label: "住宅" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏠+⚠️": [
+      { icon: "⚠️", label: "防災住宅", highlight: true },
+      { icon: "🏠", label: "住宅" },
+      { icon: "👴", label: "高齢者" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏠+📍": [
+      { icon: "📍", label: "周辺施設", highlight: true },
+      { icon: "🏠", label: "住宅" },
+      { icon: "🏫", label: "学校" },
+      { icon: "🏥", label: "医療" },
+    ],
+    "🏫+💰": [
+      { icon: "💴", label: "教育費支援", highlight: true },
+      { icon: "🏫", label: "学校" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "👶", label: "子ども" },
+    ],
+    "🏫+👶": [
+      { icon: "👶", label: "子ども" },
+      { icon: "🏫", label: "入園・入学", highlight: true },
+      { icon: "📝", label: "手続き" },
+      { icon: "📚", label: "学用品" },
+    ],
+    "🏫+👴": [
+      { icon: "👴", label: "高齢者学習" },
+      { icon: "🏫", label: "生涯学習", highlight: true },
+      { icon: "📚", label: "講座" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏫+🏠": [
+      { icon: "🏠", label: "学区案内", highlight: true },
+      { icon: "🏫", label: "学校" },
+      { icon: "👶", label: "子ども" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏫+📝": [
+      { icon: "📝", label: "入学手続き", highlight: true },
+      { icon: "🏫", label: "学校" },
+      { icon: "📚", label: "学用品" },
+      { icon: "👶", label: "子ども" },
+    ],
+    "🏫+🏥": [
+      { icon: "🏥", label: "学校健診", highlight: true },
+      { icon: "🏫", label: "学校" },
+      { icon: "👶", label: "子ども" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏫+🗑️": [
+      { icon: "🗑️", label: "学校ごみ出し", highlight: true },
+      { icon: "🏫", label: "学校" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏫+⚠️": [
+      { icon: "⚠️", label: "学校防災", highlight: true },
+      { icon: "🏫", label: "学校" },
+      { icon: "👶", label: "子ども" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏫+📍": [
+      { icon: "📍", label: "学校案内", highlight: true },
+      { icon: "🏫", label: "学校" },
+      { icon: "🏠", label: "住宅" },
+      { icon: "👶", label: "子ども" },
+    ],
+    "🏥+💰": [
+      { icon: "💴", label: "医療費助成", highlight: true },
+      { icon: "🏥", label: "医療" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "👴", label: "高齢者" },
+    ],
+    "🏥+👶": [
+      { icon: "👶", label: "小児医療", highlight: true },
+      { icon: "🏥", label: "予防接種" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "💉", label: "健康診断" },
+    ],
+    "🏥+👴": [
+      { icon: "👴", label: "高齢者医療", highlight: true },
+      { icon: "🏥", label: "健康診断" },
+      { icon: "📝", label: "申請方法" },
+      { icon: "💴", label: "医療費助成" },
+    ],
+    "🏥+🏠": [
+      { icon: "🏠", label: "近隣医療", highlight: true },
+      { icon: "🏥", label: "医療" },
+      { icon: "👴", label: "高齢者" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏥+🏫": [
+      { icon: "🏫", label: "学校健診", highlight: true },
+      { icon: "🏥", label: "医療" },
+      { icon: "👶", label: "子ども" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏥+📝": [
+      { icon: "📝", label: "医療申請", highlight: true },
+      { icon: "🏥", label: "医療" },
+      { icon: "💉", label: "健康診断" },
+      { icon: "👴", label: "高齢者" },
+    ],
+    "🏥+🗑️": [
+      { icon: "🗑️", label: "医療廃棄物", highlight: true },
+      { icon: "🏥", label: "医療" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏥+⚠️": [
+      { icon: "⚠️", label: "災害医療", highlight: true },
+      { icon: "🏥", label: "医療" },
+      { icon: "👴", label: "高齢者" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🏥+📍": [
+      { icon: "📍", label: "医療機関案内", highlight: true },
+      { icon: "🏥", label: "医療" },
+      { icon: "🏠", label: "住宅" },
+      { icon: "👴", label: "高齢者" },
+    ],
+    "🗑️+💰": [
+      { icon: "💴", label: "ごみ処理手数料", highlight: true },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🗑️+👶": [
+      { icon: "👶", label: "おむつ" },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🗑️+👴": [
+      { icon: "👴", label: "高齢者ごみ出し支援", highlight: true },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🗑️+🏠": [
+      { icon: "🏠", label: "住宅ごみ出し", highlight: true },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🗑️+🏫": [
+      { icon: "🏫", label: "学校ごみ出し", highlight: true },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🗑️+🏥": [
+      { icon: "🏥", label: "医療廃棄物", highlight: true },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🗑️+📝": [
+      { icon: "📝", label: "ごみ出し申請", highlight: true },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "♻️", label: "リサイクル" },
+      { icon: "🏠", label: "住宅" },
+    ],
+    "🗑️+⚠️": [
+      { icon: "⚠️", label: "災害ごみ", highlight: true },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "🏠", label: "住宅" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "🗑️+📍": [
+      { icon: "📍", label: "ごみ集積所", highlight: true },
+      { icon: "🗑️", label: "ごみ出し" },
+      { icon: "🏠", label: "住宅" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "⚠️+💰": [
+      { icon: "💴", label: "災害見舞金", highlight: true },
+      { icon: "⚠️", label: "災害支援" },
+      { icon: "🏠", label: "住宅支援" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "⚠️+👶": [
+      { icon: "👶", label: "子ども安全", highlight: true },
+      { icon: "⚠️", label: "防災" },
+      { icon: "🏠", label: "避難所" },
+      { icon: "📝", label: "手続き" },
+    ],
+    "⚠️+👴": [
+      { icon: "👴", label: "高齢者安全", highlight: true },
+      { icon: "⚠️", label: "防災" },
+      { icon: "🏠", label: "避難所" },
+      { icon: "📝", label: "手続き" },
+    ],
+    "⚠️+🏠": [
+      { icon: "🏠", label: "防災住宅", highlight: true },
+      { icon: "⚠️", label: "防災" },
+      { icon: "👴", label: "高齢者" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "⚠️+🏫": [
+      { icon: "🏫", label: "学校防災", highlight: true },
+      { icon: "⚠️", label: "防災" },
+      { icon: "👶", label: "子ども" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "⚠️+🏥": [
+      { icon: "🏥", label: "災害医療", highlight: true },
+      { icon: "⚠️", label: "防災" },
+      { icon: "👴", label: "高齢者" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "⚠️+📝": [
+      { icon: "📝", label: "災害手続き", highlight: true },
+      { icon: "⚠️", label: "防災" },
+      { icon: "🏠", label: "避難所" },
+      { icon: "👴", label: "高齢者" },
+    ],
+    "⚠️+🗑️": [
+      { icon: "🗑️", label: "災害ごみ", highlight: true },
+      { icon: "⚠️", label: "防災" },
+      { icon: "🏠", label: "住宅" },
+      { icon: "📝", label: "申請方法" },
+    ],
+    "⚠️+📍": [
+      { icon: "📍", label: "避難所案内", highlight: true },
+      { icon: "⚠️", label: "防災" },
+      { icon: "🏠", label: "住宅" },
+      { icon: "👴", label: "高齢者" },
+    ],
+  };
+
+  // 検索時にキーを生成
+  const filterKey = `${firstEmoji}+${secondEmoji}`;
+  const filters = relatedFilters[filterKey] || [
+    { icon: "🔎", label: "関連情報" }
+  ];
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       <div className="w-full max-w-md h-full p-4 pb-20 overflow-y-auto">
@@ -933,7 +1430,7 @@ export default function Home() {
               <p className="text-sm text-gray-600">サービスを探す絵文字を選んでください</p>
             </div>
 
-            {/* よく使われる組み合わせ（2個目選択時も常に表示） */}
+            {/* よく使われる組み合わせ（2個目選択時も常に表示 */}
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-700 mb-3">よく使われる組み合わせ</h3>
               <div className="bg-white rounded-xl p-4 shadow-sm">
@@ -976,6 +1473,22 @@ export default function Home() {
               <p className="text-xs text-gray-500 mt-1">
                 合計{totalResults}件の検索結果を表示しています
               </p>
+            </div>
+            <div className="flex flex-wrap gap-3 mb-6">
+              {filters.map((filter) => (
+                <button
+                  key={filter.label}
+                  className={`flex items-center gap-1 px-4 py-2 rounded-full border text-base font-semibold shadow-sm transition
+                    ${filter.highlight
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-700 border-gray-300"
+                    }`}
+                  type="button"
+                >
+                  <span>{filter.icon}</span>
+                  <span>{filter.label}</span>
+                </button>
+              ))}
             </div>
             <div className="grid grid-cols-1 gap-4">
               {paginatedResults.map((item: any, i: number) => {
