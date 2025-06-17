@@ -978,6 +978,9 @@ export default function Home() {
               >
                 {secondEmoji || "❓"}
               </motion.div>
+              {secondEmoji && (
+                <div className="mx-4 text-3xl text-purple-500">＝</div>
+              )}
               {firstEmoji && secondEmoji && (
                 <>
                   {/* 既存のローカル検索ボタンは削除または非表示にしてOK */}
