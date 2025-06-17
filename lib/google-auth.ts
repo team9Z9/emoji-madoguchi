@@ -1,10 +1,8 @@
 import { GoogleAuth } from 'google-auth-library';
 
 const auth = new GoogleAuth({
-    scopes: [
-        'https://www.googleapis.com/auth/discoveryengine',
-        'https://www.googleapis.com/auth/cloud-platform.read-only'
-    ],
+  // Could not refresh access tokenが出るのでこのスコープ
+    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
 });
 
 export async function getAccessToken(): Promise<string | undefined> {

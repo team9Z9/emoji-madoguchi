@@ -26,6 +26,6 @@ services:
       - ./tailwind.config.ts:/app/tailwind.config.ts
 
       # GCPサービスアカウントキーのマウント
-      - ./.gcp/chronos-ai-search-key.json:/app/service-account.json
+      - ./.gcp/service-account.json:/app/service-account.json
 
     command: npm run dev
