@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useRef } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, X, HomeIcon } from "lucide-react"
+import { ArrowLeft, X } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
 
@@ -28,12 +28,10 @@ export default function Home() {
   const [isDraggingOver, setIsDraggingOver] = useState<string | null>(null)
   const [showAiChat, setShowAiChat] = useState(false)
   const [aiMessage, setAiMessage] = useState("")
-  const [activeCategory, setActiveCategory] = useState(0)
   const [isSelectingSecond, setIsSelectingSecond] = useState(false)
   const [showRelatedEmojis, setShowRelatedEmojis] = useState(false)
   const [tooltipEmoji, setTooltipEmoji] = useState<string | null>(null)
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
-  const [secondSelectionMode, setSecondSelectionMode] = useState<"related" | "category">("related")
   const [currentPage, setCurrentPage] = useState(1)
   const [resultsPerPage] = useState(5)
 
@@ -795,23 +793,6 @@ export default function Home() {
   const totalPages = Math.ceil(totalResults / resultsPerPage)
   const paginatedResults = apiResults.slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage)
 
-  function getRelatedEmojisForSelection(firstEmoji: string) {
-    // 関連性の高い絵文字を簡易的に定義
-    const related: Record<string, string[]> = {
-      "💰": ["👶", "👴", "🏠", "🏫", "🏥"],
-      "👶": ["💰", "🏫", "🏥", "🏠", "📝"],
-      "👴": ["💰", "🏥", "🏠", "📝", "⚠️"],
-      "📝": ["🏫", "🏥", "🏠", "🗑️", "👶"],
-      "🗑️": ["📝", "🏠", "🏫"],
-      "⚠️": ["🏥", "👶", "👴"],
-      "📍": ["🏫", "🏥", "🏠"],
-      "🏠": ["💰", "👶", "👴", "📝", "🏥"],
-      "🏥": ["💰", "👶", "👴", "📝", "🏠"],
-      "🏫": ["💰", "👶", "📝", "🏠"],
-    }
-    // 関連がなければ全絵文字から自分以外を返す
-    return related[firstEmoji] || emojis.filter(e => e !== firstEmoji)
-  }
   function getEmojiCategory(tooltipEmoji: string): React.ReactNode {
     // カテゴリー名を返す（簡易実装: emojiDescriptionsの説明文から推測）
     if (!tooltipEmoji) return null;
