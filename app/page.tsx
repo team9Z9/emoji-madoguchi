@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef } from "react"
+import React, { useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, X } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
@@ -11,13 +9,10 @@ import { relatedFilters } from "../lib/related-filters"
 // 絵文字の定義
 const emojis = ["💰", "👶", "👴", "📝", "🗑️", "⚠️", "📍", "🏠", "🏥", "🏫"]
 
-// 絵文字カテゴリーの定義
-type EmojiCategory = {
-  name: string
-  icon: string
-  color: string
-  emojis: string[]
-}
+const PREFS = [
+  { label: "東京都", value: "tokyo", cities: [{ label: "狛江市", value: "komae" }] },
+  { label: "福島県", value: "fukushima", cities: [{ label: "矢吹町", value: "yabuki" }] },
+];
 
 export default function Home() {
   const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
@@ -35,6 +30,8 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1)
   const [resultsPerPage] = useState(5)
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [selectedPref, setSelectedPref] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
 
   // ドラッグ中の絵文字の位置を追跡
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
@@ -848,23 +845,64 @@ export default function Home() {
     return categoryMap[tooltipEmoji] || "";
   }
 
+  function handlePrefChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+    const value = event.target.value;
+    setSelectedPref(value);
+    setSelectedCity(""); // 都道府県が変わったら市区町村もリセット
+  }
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       <div className="w-full max-w-md h-full p-4 pb-20 overflow-y-auto">
         {/* ヘッダー */}
-        <div className="flex justify-between items-center mb-4">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleBack}
-            className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-600" />
-          </motion.button>
-        </div>
+        {viewMode !== "home" && (
+          <div className="flex justify-between items-center mb-4">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleBack}
+              className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </motion.button>
+          </div>
+        )}
 
         {/* ホーム画面 */}
         {viewMode === "home" && (
           <>
+            {/* 地域選択UI（ホーム画面上部に追加） */}
+            <div className="w-full mb-2">
+              <span className="flex items-center text-base font-semibold text-blue-900 mb-2">
+                <span className="mr-2 text-xl">🗾</span>地域を選択してください
+              </span>
+            </div>
+            <div className="flex gap-4 mb-6 w-full">
+              <select
+                className="w-1/2 px-3 py-2 rounded-lg border-2 border-blue-700 bg-white text-blue-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={selectedPref}
+                onChange={handlePrefChange}
+              >
+                <option value="">都道府県を選択</option>
+                {PREFS.map((pref) => (
+                  <option key={pref.value} value={pref.value}>
+                    {pref.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="w-1/2 px-3 py-2 rounded-lg border-2 border-purple-700 bg-white text-purple-900 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-400"
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                disabled={!selectedPref}
+              >
+                <option value="">市区町村を選択</option>
+                {PREFS.find((p) => p.value === selectedPref)?.cities.map((city) => (
+                  <option key={city.value} value={city.value}>
+                    {city.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* 絵文字選択インジケーター */}
             <div className="flex items-center justify-center mb-6 mt-2">
               <motion.div
