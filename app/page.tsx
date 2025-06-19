@@ -34,6 +34,7 @@ export default function Home() {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   const [currentPage, setCurrentPage] = useState(1)
   const [resultsPerPage] = useState(5)
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   // ドラッグ中の絵文字の位置を追跡
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
@@ -788,6 +789,42 @@ export default function Home() {
     setViewMode("searchDetail");
   }
 
+  // filtersの定義の後にfilteredResultsを定義
+  const filterKey = `${firstEmoji}+${secondEmoji}`;
+  const filters = relatedFilters[filterKey] || [
+    { icon: "🔎", label: "関連情報" }
+  ];
+
+  // 「すべて」フィルターを先頭に追加
+  const allFilter = { icon: "📋", label: "すべて", highlight: false };
+  const displayFilters = [allFilter, ...filters];
+
+  // 検索結果のフィルタリング
+  const filteredResults = activeFilter && activeFilter !== "すべて"
+    ? apiResults.filter((item: any) => {
+      const filter = filters.find(f => f.label === activeFilter);
+      if (!filter) return true;
+      const keyword = filter.label;
+      const doc = item.document?.derivedStructData || {};
+      const title = doc.title || doc.htmlTitle || item.title || "";
+      const snippet =
+        doc.snippets?.[0]?.snippet ||
+        doc.pagemap?.metatags?.[0]?.["og:description"] ||
+        item.content ||
+        "";
+      const siteName =
+        doc.pagemap?.metatags?.[0]?.["og:site_name"] ||
+        doc.displayLink ||
+        item.siteName ||
+        "";
+      return (
+        title.includes(keyword) ||
+        snippet.includes(keyword) ||
+        siteName.includes(keyword)
+      );
+    })
+    : apiResults;
+
   // ページネーション用
   const totalResults = apiResults.length
   const totalPages = Math.ceil(totalResults / resultsPerPage)
@@ -810,12 +847,6 @@ export default function Home() {
     };
     return categoryMap[tooltipEmoji] || "";
   }
-
-  // 検索時にキーを生成
-  const filterKey = `${firstEmoji}+${secondEmoji}`;
-  const filters = relatedFilters[filterKey] || [
-    { icon: "🔎", label: "関連情報" }
-  ];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
@@ -967,15 +998,20 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3 mb-6">
-              {filters.map((filter) => (
+              {displayFilters.map((filter) => (
                 <button
                   key={filter.label}
                   className={`flex items-center gap-1 px-4 py-2 rounded-full border text-base font-semibold shadow-sm transition
-                    ${filter.highlight
+  ${activeFilter === filter.label || (!activeFilter && filter.label === "すべて")
                       ? "bg-blue-600 text-white"
                       : "bg-white text-gray-700 border-gray-300"
-                    }`}
+                    }
+  ${activeFilter === filter.label || (!activeFilter && filter.label === "すべて") ? "ring-2 ring-blue-400" : ""}
+`}
                   type="button"
+                  onClick={() =>
+                    setActiveFilter(filter.label === "すべて" ? null : filter.label)
+                  }
                 >
                   <span>{filter.icon}</span>
                   <span>{filter.label}</span>
@@ -983,7 +1019,7 @@ export default function Home() {
               ))}
             </div>
             <div className="grid grid-cols-1 gap-4">
-              {paginatedResults.map((item: any, i: number) => {
+              {filteredResults.map((item: any, i: number) => {
                 const doc = item.document?.derivedStructData || {};
                 const title =
                   doc.title ||
