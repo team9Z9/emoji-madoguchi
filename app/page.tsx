@@ -950,20 +950,20 @@ export default function Home() {
             </div>
 
             {/* 絵文字選択グリッド */}
-            <div className="grid grid-cols-5 gap-3 mb-4">
+            <div className="grid grid-cols-5 gap-4 mb-4">
               {isSelectingSecond && firstEmoji
                 ? emojis.map((emoji) => (
                   <motion.div
                     key={emoji}
-                    className="flex items-center justify-center h-16 text-3xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
+                    className="flex items-center justify-center h-20 w-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
                     onMouseDown={(e) => handleDragStart(emoji, e)}
                     onTouchStart={(e) => handleTouchStart(emoji, e)}
                     onTouchEnd={handleTouchEnd}
                     onMouseOver={(e) => handleMouseOver(emoji, e)}
                     onMouseOut={handleMouseOut}
                     onClick={() => selectEmoji(emoji)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.07 }}
+                    whileTap={{ scale: 0.96 }}
                   >
                     {emoji}
                   </motion.div>
@@ -971,15 +971,15 @@ export default function Home() {
                 : emojis.map((emoji) => (
                   <motion.div
                     key={emoji}
-                    className="flex items-center justify-center h-16 text-3xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
+                    className="flex items-center justify-center h-20 w-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
                     onMouseDown={(e) => handleDragStart(emoji, e)}
                     onTouchStart={(e) => handleTouchStart(emoji, e)}
                     onTouchEnd={handleTouchEnd}
                     onMouseOver={(e) => handleMouseOver(emoji, e)}
                     onMouseOut={handleMouseOut}
                     onClick={() => selectEmoji(emoji)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.07 }}
+                    whileTap={{ scale: 0.96 }}
                   >
                     {emoji}
                   </motion.div>
