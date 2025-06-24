@@ -5,14 +5,13 @@ import { motion } from "framer-motion"
 import { ArrowLeft, X } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
+import { EMOJIS, PREFECTURES } from "../lib/constants"
 
 // 絵文字の定義
-const emojis = ["💰", "👶", "👴", "📝", "🗑️", "⚠️", "📍", "🏠", "🏥", "🏫"]
+const emojis = EMOJIS;
 
-const PREFS = [
-  { label: "東京都", value: "tokyo", cities: [{ label: "狛江市", value: "komae" }] },
-  { label: "福島県", value: "fukushima", cities: [{ label: "矢吹町", value: "yabuki" }] },
-];
+// 都道府県・市区町村の定義
+const PREFS = PREFECTURES;
 
 export default function Home() {
   const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
