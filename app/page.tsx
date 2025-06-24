@@ -768,7 +768,7 @@ export default function Home() {
   const [isApiSearching, setIsApiSearching] = useState(false)
   const [apiResults, setApiResults] = useState<any[]>([])
   const [apiError, setApiError] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"home" | "searchResults" | "searchDetail">("home")
+  const [viewMode, setViewMode] = useState<"top" | "home" | "searchResults" | "searchDetail">("top");
   const [selectedResult, setSelectedResult] = useState<any | null>(null)
 
   function handleBack(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
@@ -857,26 +857,26 @@ export default function Home() {
     setSelectedPref(value);
     setSelectedCity(""); // 都道府県が変わったら市区町村もリセット
   }
+  // 地域選択後にホーム画面へ遷移する関数
+  function handleRegionSelect(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+    event.preventDefault();
+    if (selectedPref && selectedCity) {
+      setViewMode("home");
+    }
+  }
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       <div className="w-full max-w-md h-full p-4 pb-20 overflow-y-auto">
-        {/* ヘッダー */}
-        {viewMode !== "home" && (
-          <div className="flex justify-between items-center mb-4">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleBack}
-              className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </motion.button>
-          </div>
-        )}
-
-        {/* ホーム画面 */}
-        {viewMode === "home" && (
-          <>
-            {/* 地域選択UI（ホーム画面上部に追加） */}
+        {/* トップ画面 */}
+        {viewMode === "top" && (
+          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+            {/* ロゴ画像を表示 */}
+            <img
+              src="/logo.png"
+              alt="サービスロゴ"
+              className="mb-8"
+              style={{ width: 330, height: 330, maxWidth: "80%", maxHeight: 240, objectFit: "contain" }}
+            />
             <div className="w-full mb-2">
               <span className="flex items-center text-base font-semibold text-blue-900 mb-2">
                 <span className="mr-2 text-xl">🗾</span>地域を選択してください
@@ -909,7 +909,19 @@ export default function Home() {
                 ))}
               </select>
             </div>
+            <button
+              className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-md disabled:opacity-50"
+              disabled={!selectedPref || !selectedCity}
+              onClick={handleRegionSelect}
+            >
+              次へ
+            </button>
+          </div>
+        )}
 
+        {/* ホーム画面 */}
+        {viewMode === "home" && (
+          <>
             {/* 絵文字選択インジケーター */}
             <div className="flex items-center justify-center mb-6 mt-2">
               <motion.div
@@ -941,8 +953,6 @@ export default function Home() {
               )}
               {firstEmoji && secondEmoji && (
                 <>
-                  {/* 既存のローカル検索ボタンは削除または非表示にしてOK */}
-                  {/* <motion.button ... onClick={executeSearch}> ... </motion.button> */}
                   <motion.button
                     className="ml-4 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md"
                     onClick={executeApiSearch}
