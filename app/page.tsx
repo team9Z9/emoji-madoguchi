@@ -740,10 +740,17 @@ export default function Home() {
     setShowRelatedEmojis(false)
     try {
       const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`
+
+      // 地域選択に応じてengineパラメータを決定
+      let engine = "main";
+      if (selectedPref === "fukushima" && selectedCity === "yabuki") {
+        engine = "sub";
+      }
+
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, engine }),
       })
       const data = await res.json()
       if (data.error) {

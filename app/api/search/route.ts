@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAccessToken } from '@/lib/google-auth';
 
 export async function POST(request: NextRequest) {
-    const { query } = await request.json();
+    const { query, engine } = await request.json();
 
     if (!query) {
         return NextResponse.json({ error: 'Query is required' }, { status: 400 });
@@ -15,7 +15,17 @@ export async function POST(request: NextRequest) {
     }
 
     const projectId = process.env.GCP_PROJECT_ID;
-    const engineId = process.env.GCP_ENGINE_ID;
+    // engineパラメータで切り替え
+    const engineId =
+        engine === 'sub'
+            ? process.env.GCP_ENGINE_ID_YABUKI
+            : process.env.GCP_ENGINE_ID_KOMAE;
+
+    // ここでログ出力
+    console.log("GCP_ENGINE_ID_KOMAE:", process.env.GCP_ENGINE_ID_KOMAE);
+    console.log("GCP_ENGINE_ID_YABUKI:", process.env.GCP_ENGINE_ID_YABUKI);
+    console.log("engine param:", engine);
+    console.log("engineId:", engineId);
 
     const endpoint = `https://discoveryengine.googleapis.com/v1alpha/projects/${projectId}/locations/global/collections/default_collection/engines/${engineId}/servingConfigs/default_search:search`;
 
