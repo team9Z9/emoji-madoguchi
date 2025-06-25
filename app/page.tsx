@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react"
 import { motion } from "framer-motion"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, Calendar, Tag } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
 import { EMOJIS, PREFECTURES } from "../lib/constants"
@@ -960,40 +960,23 @@ export default function Home() {
             </div>
 
             {/* 絵文字選択グリッド */}
-            <div className="grid grid-cols-5 gap-4 mb-4">
-              {isSelectingSecond && firstEmoji
-                ? EMOJIS.map((emoji) => (
-                  <motion.div
-                    key={emoji}
-                    className="flex items-center justify-center h-20 w-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
-                    onMouseDown={(e) => handleDragStart(emoji, e)}
-                    onTouchStart={(e) => handleTouchStart(emoji, e)}
-                    onTouchEnd={handleTouchEnd}
-                    onMouseOver={(e) => handleMouseOver(emoji, e)}
-                    onMouseOut={handleMouseOut}
-                    onClick={() => selectEmoji(emoji)}
-                    whileHover={{ scale: 1.07 }}
-                    whileTap={{ scale: 0.96 }}
-                  >
-                    {emoji}
-                  </motion.div>
-                ))
-                : EMOJIS.map((emoji) => (
-                  <motion.div
-                    key={emoji}
-                    className="flex items-center justify-center h-20 w-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
-                    onMouseDown={(e) => handleDragStart(emoji, e)}
-                    onTouchStart={(e) => handleTouchStart(emoji, e)}
-                    onTouchEnd={handleTouchEnd}
-                    onMouseOver={(e) => handleMouseOver(emoji, e)}
-                    onMouseOut={handleMouseOut}
-                    onClick={() => selectEmoji(emoji)}
-                    whileHover={{ scale: 1.07 }}
-                    whileTap={{ scale: 0.96 }}
-                  >
-                    {emoji}
-                  </motion.div>
-                ))}
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 mb-4">
+              {EMOJIS.map((emoji) => (
+                <motion.div
+                  key={emoji}
+                  className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
+                  onMouseDown={(e) => handleDragStart(emoji, e)}
+                  onTouchStart={(e) => handleTouchStart(emoji, e)}
+                  onTouchEnd={handleTouchEnd}
+                  onMouseOver={(e) => handleMouseOver(emoji, e)}
+                  onMouseOut={handleMouseOut}
+                  onClick={() => selectEmoji(emoji)}
+                  whileHover={{ scale: 1.07 }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  {emoji}
+                </motion.div>
+              ))}
             </div>
 
             {/* カテゴリーの説明 */}
@@ -1109,11 +1092,11 @@ export default function Home() {
                       {/* 公開日・サイト名 */}
                       <div className="flex items-center text-xs text-gray-500 gap-3">
                         <div className="flex items-center">
-                          <span className="mr-1">📅</span>
+                          <Calendar className="w-4 h-4 mr-1 inline-block align-text-bottom" />
                           <span>{publishDate || <span className="text-gray-400">―</span>}</span>
                         </div>
                         <div className="flex items-center">
-                          <span className="mr-1">🏦</span>
+                          <Tag className="w-4 h-4 mr-1 inline-block align-text-bottom" />
                           <span>{siteName}</span>
                         </div>
                       </div>
@@ -1180,7 +1163,7 @@ export default function Home() {
               {/* 公開日・引用先URL */}
               <div className="flex flex-col gap-2 text-sm text-gray-500 border-b border-gray-200 pb-4 mb-4">
                 <div className="flex items-center">
-                  <span className="mr-2">📅</span>
+                  <Calendar className="w-4 h-4 mr-1 inline-block align-text-bottom" />
                   <span>
                     公開日：
                     {
