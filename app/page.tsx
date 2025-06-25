@@ -734,11 +734,8 @@ export default function Home() {
     try {
       const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`
 
-      // 地域選択に応じてengineパラメータを決定
-      let engine = "main";
-      if (selectedPref === "fukushima" && selectedCity === "yabuki") {
-        engine = "sub";
-      }
+      // 選択された検索エンジンを取得
+      const engine = selectedPref;
 
       const res = await fetch('/api/search', {
         method: 'POST',
