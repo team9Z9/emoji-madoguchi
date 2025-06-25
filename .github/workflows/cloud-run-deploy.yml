@@ -52,7 +52,6 @@ jobs:
           --max-instances=10 \
           --concurrency=80 \
           --port=8080 \
-          --set-env-vars="NODE_ENV=production,GCP_PROJECT_ID=$PROJECT_ID,GCP_ENGINE_ID=chronos_1748843978267,GOOGLE_APPLICATION_CREDENTIALS=" \
           --service-account="ai-search-chronos@chronos-sandbox.iam.gserviceaccount.com"
 
     - name: Show Output URL
