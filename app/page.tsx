@@ -984,7 +984,7 @@ export default function Home() {
                   whileHover={{ scale: 1.07 }}
                   whileTap={{ scale: 0.96 }}
                 >
-                  {emoji}
+                  <span className="select-none" style={{ userSelect: "none" }}>{emoji}</span>
                 </motion.div>
               ))}
             </div>
