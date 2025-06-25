@@ -6,6 +6,7 @@ import { ArrowLeft, X } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
 import { EMOJIS, PREFECTURES } from "../lib/constants"
+import AiChatButton from "../components/ui/ai-chat"
 
 export default function Home() {
   const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
@@ -1157,14 +1158,9 @@ export default function Home() {
               </button>
             </div>
             {/* 右下にAIチャットボットのアイコンを設置 */}
-            <button
-              className="fixed bottom-8 right-8 z-40 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center text-3xl hover:scale-105 transition"
-              onClick={openAiChat}
-              aria-label="AIチャットを開く"
-              style={{ boxShadow: "0 4px 24px rgba(80, 80, 200, 0.18)" }}
-            >
-              🤖
-            </button>
+            <div>
+              <AiChatButton onClick={openAiChat} />
+            </div>
           </div>
         )}
 
@@ -1223,15 +1219,11 @@ export default function Home() {
                   </a>
                 </div>
               </div>
-            </div>{/* 右下にAIチャットボットのアイコンを設置 */}
-            <button
-              className="fixed bottom-8 right-8 z-40 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center text-3xl hover:scale-105 transition"
-              onClick={openAiChat}
-              aria-label="AIチャットを開く"
-              style={{ boxShadow: "0 4px 24px rgba(80, 80, 200, 0.18)" }}
-            >
-              🤖
-            </button>
+            </div>
+            {/* 右下にAIチャットボットのアイコンを設置 */}
+            <div>
+              <AiChatButton onClick={openAiChat} />
+            </div>
           </div>
         )}
 
