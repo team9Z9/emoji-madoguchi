@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, X } from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
 import { EMOJIS, PREFECTURES } from "../lib/constants"
@@ -1198,19 +1198,21 @@ export default function Home() {
                       (() => {
                         const snippet = selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet || "";
                         const match = snippet.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
-                        return match ? formatDateToJapanese(match[0]) : "";
+                        return match ? formatDateToJapanese(match[0])
+                          : <span className="text-gray-400">―</span>;
                       })()
                     }
                   </span>
                 </div>
                 <div className="flex items-center">
-                  <span className="mr-2">🔗</span>
                   <a
-                    href={selectedResult.document?.derivedStructData?.link ||
+                    href={
+                      selectedResult.document?.derivedStructData?.link ||
                       selectedResult.document?.derivedStructData?.url ||
                       selectedResult.url ||
-                      "#"}
-                    className="text-blue-600 break-all"
+                      "#"
+                    }
+                    className="text-blue-600 break-all flex items-center"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -1218,6 +1220,7 @@ export default function Home() {
                       selectedResult.document?.derivedStructData?.url ||
                       selectedResult.url ||
                       ""}
+                    <ExternalLink className="w-6 h-6 inline-block align-text-bottom" />
                   </a>
                 </div>
               </div>
