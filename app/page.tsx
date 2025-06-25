@@ -1,23 +1,14 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef } from "react"
+import React, { useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, X } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
+import { EMOJIS, PREFECTURES } from "../lib/constants"
+import AiChatButton from "../components/ui/ai-chat"
+import AiChatModal from "../components/ui/ai-chat-modal"
 
-// 絵文字の定義
-const emojis = ["💰", "👶", "👴", "📝", "🗑️", "⚠️", "📍", "🏠", "🏥", "🏫"]
-
-// 絵文字カテゴリーの定義
-type EmojiCategory = {
-  name: string
-  icon: string
-  color: string
-  emojis: string[]
-}
 
 export default function Home() {
   const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
@@ -35,6 +26,8 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1)
   const [resultsPerPage] = useState(5)
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [selectedPref, setSelectedPref] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
 
   // ドラッグ中の絵文字の位置を追跡
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
@@ -743,10 +736,14 @@ export default function Home() {
     setShowRelatedEmojis(false)
     try {
       const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`
+
+      // 選択された検索エンジンを取得
+      const engine = selectedPref;
+
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, engine }),
       })
       const data = await res.json()
       if (data.error) {
@@ -764,7 +761,7 @@ export default function Home() {
   const [isApiSearching, setIsApiSearching] = useState(false)
   const [apiResults, setApiResults] = useState<any[]>([])
   const [apiError, setApiError] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"home" | "searchResults" | "searchDetail">("home")
+  const [viewMode, setViewMode] = useState<"top" | "home" | "searchResults" | "searchDetail">("top");
   const [selectedResult, setSelectedResult] = useState<any | null>(null)
 
   function handleBack(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
@@ -848,19 +845,72 @@ export default function Home() {
     return categoryMap[tooltipEmoji] || "";
   }
 
+  function handlePrefChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+    const value = event.target.value;
+    setSelectedPref(value);
+    setSelectedCity(""); // 都道府県が変わったら市区町村もリセット
+  }
+  // 地域選択後にホーム画面へ遷移する関数
+  function handleRegionSelect(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+    event.preventDefault();
+    if (selectedPref && selectedCity) {
+      setViewMode("home");
+    }
+  }
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       <div className="w-full max-w-md h-full p-4 pb-20 overflow-y-auto">
-        {/* ヘッダー */}
-        <div className="flex justify-between items-center mb-4">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleBack}
-            className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-600" />
-          </motion.button>
-        </div>
+        {/* トップ画面 */}
+        {viewMode === "top" && (
+          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+            {/* ロゴ画像を表示 */}
+            <img
+              src="/logo.png"
+              alt="サービスロゴ"
+              className="mb-8"
+              style={{ width: 330, height: 330, maxWidth: "80%", maxHeight: 240, objectFit: "contain" }}
+            />
+            <div className="w-full mb-2">
+              <span className="flex items-center text-base font-semibold text-blue-900 mb-2">
+                <span className="mr-2 text-xl">🗾</span>地域を選択してください
+              </span>
+            </div>
+            <div className="flex gap-4 mb-6 w-full">
+              <select
+                className="w-1/2 px-3 py-2 rounded-lg border-2 border-blue-700 bg-white text-blue-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={selectedPref}
+                onChange={handlePrefChange}
+              >
+                <option value="">都道府県を選択</option>
+                {PREFECTURES.map((pref) => (
+                  <option key={pref.value} value={pref.value}>
+                    {pref.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="w-1/2 px-3 py-2 rounded-lg border-2 border-blue-700 bg-white text-blue-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                disabled={!selectedPref}
+              >
+                <option value="">市区町村を選択</option>
+                {PREFECTURES.find((pref) => pref.value === selectedPref)?.cities.map((city) => (
+                  <option key={city.value} value={city.value}>
+                    {city.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-md disabled:opacity-50"
+              disabled={!selectedPref || !selectedCity}
+              onClick={handleRegionSelect}
+            >
+              次へ
+            </button>
+          </div>
+        )}
 
         {/* ホーム画面 */}
         {viewMode === "home" && (
@@ -896,8 +946,6 @@ export default function Home() {
               )}
               {firstEmoji && secondEmoji && (
                 <>
-                  {/* 既存のローカル検索ボタンは削除または非表示にしてOK */}
-                  {/* <motion.button ... onClick={executeSearch}> ... </motion.button> */}
                   <motion.button
                     className="ml-4 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md"
                     onClick={executeApiSearch}
@@ -912,36 +960,36 @@ export default function Home() {
             </div>
 
             {/* 絵文字選択グリッド */}
-            <div className="grid grid-cols-5 gap-3 mb-4">
+            <div className="grid grid-cols-5 gap-4 mb-4">
               {isSelectingSecond && firstEmoji
-                ? emojis.map((emoji) => (
+                ? EMOJIS.map((emoji) => (
                   <motion.div
                     key={emoji}
-                    className="flex items-center justify-center h-16 text-3xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
+                    className="flex items-center justify-center h-20 w-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
                     onMouseDown={(e) => handleDragStart(emoji, e)}
                     onTouchStart={(e) => handleTouchStart(emoji, e)}
                     onTouchEnd={handleTouchEnd}
                     onMouseOver={(e) => handleMouseOver(emoji, e)}
                     onMouseOut={handleMouseOut}
                     onClick={() => selectEmoji(emoji)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.07 }}
+                    whileTap={{ scale: 0.96 }}
                   >
                     {emoji}
                   </motion.div>
                 ))
-                : emojis.map((emoji) => (
+                : EMOJIS.map((emoji) => (
                   <motion.div
                     key={emoji}
-                    className="flex items-center justify-center h-16 text-3xl rounded-2xl shadow-md border border-gray-100 cursor-grab active:cursor-grabbing bg-gradient-to-br from-blue-100 to-blue-50"
+                    className="flex items-center justify-center h-20 w-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
                     onMouseDown={(e) => handleDragStart(emoji, e)}
                     onTouchStart={(e) => handleTouchStart(emoji, e)}
                     onTouchEnd={handleTouchEnd}
                     onMouseOver={(e) => handleMouseOver(emoji, e)}
                     onMouseOut={handleMouseOut}
                     onClick={() => selectEmoji(emoji)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.07 }}
+                    whileTap={{ scale: 0.96 }}
                   >
                     {emoji}
                   </motion.div>
@@ -1111,6 +1159,10 @@ export default function Home() {
                 <span>別の絵文字で再検索</span>
               </button>
             </div>
+            {/* 右下にAIチャットボットのアイコンを設置 */}
+            <div>
+              <AiChatButton onClick={openAiChat} />
+            </div>
           </div>
         )}
 
@@ -1170,106 +1222,69 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            {/* 右下にAIチャットボットのアイコンを設置 */}
+            <div>
+              <AiChatButton onClick={openAiChat} />
+            </div>
           </div>
         )}
 
         {/* AIチャットモーダル */}
-        {showAiChat && (
-          <div className="fixed inset-0 bg-black/50 flex items-end justify-center p-4 z-30">
-            <motion.div
-              className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              transition={{ type: "spring", damping: 25 }}
-            >
-              <div className="flex items-center justify-between p-4 border-b">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-2">🤖</span>
-                  <span className="font-medium">AIアシスタント</span>
+        <div>
+          <AiChatModal
+            show={showAiChat}
+            message={aiMessage}
+            onClose={closeAiChat}
+          />
+        </div>
+
+        {/* ドラッグ中の絵文字表示 */}
+        {isDragging && draggingEmoji && (
+          <motion.div
+            className="fixed pointer-events-none text-4xl z-50 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-xl shadow-md"
+            style={{
+              left: `${dragPosition.x}px`,
+              top: `${dragPosition.y}px`,
+              background: "linear-gradient(to bottom right, #f0f4ff, #ffffff)",
+            }}
+            initial={{ scale: 0.8, opacity: 0.8 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            {draggingEmoji}
+          </motion.div>
+        )}
+
+        {/* ツールチップ - サイズを大きく、より見やすく改善 */}
+        {tooltipEmoji && (
+          <div
+            className="fixed z-50 bg-black/90 text-white rounded-lg px-4 py-3 pointer-events-none transform -translate-x-1/2 max-w-[250px] shadow-lg"
+            style={{
+              left: `${tooltipPosition.x}px`,
+              top: `${tooltipPosition.y - 45}px`,
+            }}
+          >
+            {tooltipEmoji.startsWith("category_") ? (
+              <div className="text-center">
+                <div className="text-lg font-bold mb-1">
+                  {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
                 </div>
-                <motion.button
-                  onClick={closeAiChat}
-                  className="text-gray-500 hover:text-gray-700"
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <X className="h-5 w-5" />
-                </motion.button>
+                <div className="text-sm opacity-80">このカテゴリーから絵文字を選択</div>
               </div>
-              <div className="p-4 h-[200px] overflow-y-auto">
-                {aiMessage && (
-                  <motion.div
-                    className="bg-gray-100 p-3 rounded-lg mb-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    {aiMessage}
-                  </motion.div>
-                )}
+            ) : (
+              <div>
+                <div className="flex items-center mb-1">
+                  <span className="text-xl mr-2">{tooltipEmoji}</span>
+                  <span className="text-base font-bold">
+                    {emojiDescriptions[tooltipEmoji]?.split("：")[0] || tooltipEmoji}
+                  </span>
+                </div>
+                <div className="text-sm opacity-90">{emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}</div>
+                <div className="text-xs mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}</div>
               </div>
-              <div className="p-4 border-t flex">
-                <input
-                  type="text"
-                  placeholder="💬 質問を入力..."
-                  className="flex-1 border rounded-l-lg px-3 py-2 focus:outline-none"
-                />
-                <motion.button
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-r-lg"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="text-xl">📤</span>
-                </motion.button>
-              </div>
-            </motion.div>
+            )}
           </div>
         )}
       </div>
-
-      {/* ドラッグ中の絵文字表示 */}
-      {isDragging && draggingEmoji && (
-        <motion.div
-          className="fixed pointer-events-none text-4xl z-50 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-xl shadow-md"
-          style={{
-            left: `${dragPosition.x}px`,
-            top: `${dragPosition.y}px`,
-            background: "linear-gradient(to bottom right, #f0f4ff, #ffffff)",
-          }}
-          initial={{ scale: 0.8, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-        >
-          {draggingEmoji}
-        </motion.div>
-      )}
-
-      {/* ツールチップ - サイズを大きく、より見やすく改善 */}
-      {tooltipEmoji && (
-        <div
-          className="fixed z-50 bg-black/90 text-white rounded-lg px-4 py-3 pointer-events-none transform -translate-x-1/2 max-w-[250px] shadow-lg"
-          style={{
-            left: `${tooltipPosition.x}px`,
-            top: `${tooltipPosition.y - 45}px`,
-          }}
-        >
-          {tooltipEmoji.startsWith("category_") ? (
-            <div className="text-center">
-              <div className="text-lg font-bold mb-1">
-                {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
-              </div>
-              <div className="text-sm opacity-80">このカテゴリーから絵文字を選択</div>
-            </div>
-          ) : (
-            <div>
-              <div className="flex items-center mb-1">
-                <span className="text-xl mr-2">{tooltipEmoji}</span>
-                <span className="text-base font-bold">
-                  {emojiDescriptions[tooltipEmoji]?.split("：")[0] || tooltipEmoji}
-                </span>
-              </div>
-              <div className="text-sm opacity-90">{emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}</div>
-              <div className="text-xs mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}</div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }

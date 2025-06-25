@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAccessToken } from '@/lib/google-auth';
 
 export async function POST(request: NextRequest) {
-    const { query } = await request.json();
+    const { query, engine } = await request.json();
 
     if (!query) {
         return NextResponse.json({ error: 'Query is required' }, { status: 400 });
@@ -15,7 +15,18 @@ export async function POST(request: NextRequest) {
     }
 
     const projectId = process.env.GCP_PROJECT_ID;
-    const engineId = process.env.GCP_ENGINE_ID;
+
+    // engineパラメータで切り替え
+    const ENGINE_ID_MAP: Record<string, string | undefined> = {
+        tokyo: process.env.GCP_ENGINE_ID_KOMAE,
+        fukushima: process.env.GCP_ENGINE_ID_YABUKI,
+    };
+
+    const engineId = ENGINE_ID_MAP[engine];
+
+    if (!engineId) {
+        return NextResponse.json({ error: 'Invalid engine parameter' }, { status: 400 });
+    }
 
     const endpoint = `https://discoveryengine.googleapis.com/v1alpha/projects/${projectId}/locations/global/collections/default_collection/engines/${engineId}/servingConfigs/default_search:search`;
 

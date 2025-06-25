@@ -8,7 +8,8 @@ services:
     environment:
       - NODE_ENV=development
       - GCP_PROJECT_ID=chronos-sandbox
-      - GCP_ENGINE_ID=chronos_1748843978267
+      - GCP_ENGINE_ID_KOMAE=chronos_1748843978267
+      - GCP_ENGINE_ID_YABUKI=yabuki_1750746007130
       - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account.json
     volumes:
       # ホットリロード用（開発時のみ）
