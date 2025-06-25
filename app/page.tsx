@@ -966,11 +966,15 @@ export default function Home() {
             </div>
 
             {/* 絵文字選択グリッド */}
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 mb-4">
+            <div
+              className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 mb-4 select-none"
+              style={{ userSelect: "none" }}
+            >
               {EMOJIS.map((emoji) => (
                 <motion.div
                   key={emoji}
-                  className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
+                  className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95 select-none"
+                  style={{ userSelect: "none" }}
                   onTouchStart={isTouchDevice ? (e) => handleTouchStart(emoji, e) : undefined}
                   onTouchEnd={isTouchDevice ? handleTouchEnd : undefined}
                   onMouseOver={!isTouchDevice ? (e) => handleMouseOver(emoji, e) : undefined}
