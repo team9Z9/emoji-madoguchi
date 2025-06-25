@@ -1177,16 +1177,6 @@ export default function Home() {
                   selectedResult.title ||
                   "No title"}
               </h1>
-              {/* 詳細本文 */}
-              <div className="text-gray-700 mb-4 whitespace-pre-line">
-                {selectedResult.document?.derivedStructData?.fullContent ||
-                  selectedResult.fullContent ||
-                  selectedResult.document?.derivedStructData?.content ||
-                  selectedResult.content ||
-                  // ↓リード文（省略される場合があるので最後のフォールバック）
-                  selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet ||
-                  ""}
-              </div>
               {/* 公開日・引用先URL */}
               <div className="flex flex-col gap-2 text-sm text-gray-500 border-b border-gray-200 pb-4 mb-4">
                 <div className="flex items-center">
