@@ -974,17 +974,18 @@ export default function Home() {
                 <motion.div
                   key={emoji}
                   className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95 select-none"
-                  style={{ userSelect: "none" }}
+                  style={{ userSelect: "none", WebkitUserSelect: "none" }}
                   onTouchStart={isTouchDevice ? (e) => handleTouchStart(emoji, e) : undefined}
                   onTouchEnd={isTouchDevice ? handleTouchEnd : undefined}
                   onMouseOver={!isTouchDevice ? (e) => handleMouseOver(emoji, e) : undefined}
                   onMouseOut={!isTouchDevice ? handleMouseOut : undefined}
                   onMouseDown={(e) => handleDragStart(emoji, e)}
                   onClick={() => selectEmoji(emoji)}
+                  onContextMenu={(e) => e.preventDefault()}
                   whileHover={{ scale: 1.07 }}
                   whileTap={{ scale: 0.96 }}
                 >
-                  <span className="select-none" style={{ userSelect: "none" }}>{emoji}</span>
+                  <span className="select-none" style={{ userSelect: "none", WebkitUserSelect: "none" }}>{emoji}</span>
                 </motion.div>
               ))}
             </div>
