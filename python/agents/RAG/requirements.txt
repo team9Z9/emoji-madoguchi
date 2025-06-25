@@ -1,0 +1,8 @@
+# Core dependencies
+google-adk>=1.0.0
+vertexai>=1.0.0
+python-dotenv>=1.0.0
+
+# Optional dependencies for development
+pytest>=7.0.0
+black>=23.0.0
