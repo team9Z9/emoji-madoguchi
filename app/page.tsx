@@ -857,6 +857,12 @@ export default function Home() {
       setViewMode("home");
     }
   }
+  // タッチデバイス判定
+  const isTouchDevice = typeof window !== "undefined" && (
+    "ontouchstart" in window ||
+    (window.navigator && window.navigator.maxTouchPoints > 0)
+  );
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       <div className="w-full max-w-md h-full p-4 pb-20 overflow-y-auto">
@@ -965,11 +971,11 @@ export default function Home() {
                 <motion.div
                   key={emoji}
                   className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
+                  onTouchStart={isTouchDevice ? (e) => handleTouchStart(emoji, e) : undefined}
+                  onTouchEnd={isTouchDevice ? handleTouchEnd : undefined}
+                  onMouseOver={!isTouchDevice ? (e) => handleMouseOver(emoji, e) : undefined}
+                  onMouseOut={!isTouchDevice ? handleMouseOut : undefined}
                   onMouseDown={(e) => handleDragStart(emoji, e)}
-                  onTouchStart={(e) => handleTouchStart(emoji, e)}
-                  onTouchEnd={handleTouchEnd}
-                  onMouseOver={(e) => handleMouseOver(emoji, e)}
-                  onMouseOut={handleMouseOut}
                   onClick={() => selectEmoji(emoji)}
                   whileHover={{ scale: 1.07 }}
                   whileTap={{ scale: 0.96 }}
