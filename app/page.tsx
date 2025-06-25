@@ -7,6 +7,8 @@ import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
 import { EMOJIS, PREFECTURES } from "../lib/constants"
 import AiChatButton from "../components/ui/ai-chat"
+import AiChatModal from "../components/ui/ai-chat-modal"
+
 
 export default function Home() {
   const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
@@ -1228,102 +1230,61 @@ export default function Home() {
         )}
 
         {/* AIチャットモーダル */}
-        {showAiChat && (
-          <div className="fixed inset-0 bg-black/50 flex items-end justify-center p-4 z-30">
-            <motion.div
-              className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              transition={{ type: "spring", damping: 25 }}
-            >
-              <div className="flex items-center justify-between p-4 border-b">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-2">🤖</span>
-                  <span className="font-medium">AIアシスタント</span>
+        <div>
+          <AiChatModal
+            show={showAiChat}
+            message={aiMessage}
+            onClose={closeAiChat}
+          />
+        </div>
+
+        {/* ドラッグ中の絵文字表示 */}
+        {isDragging && draggingEmoji && (
+          <motion.div
+            className="fixed pointer-events-none text-4xl z-50 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-xl shadow-md"
+            style={{
+              left: `${dragPosition.x}px`,
+              top: `${dragPosition.y}px`,
+              background: "linear-gradient(to bottom right, #f0f4ff, #ffffff)",
+            }}
+            initial={{ scale: 0.8, opacity: 0.8 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            {draggingEmoji}
+          </motion.div>
+        )}
+
+        {/* ツールチップ - サイズを大きく、より見やすく改善 */}
+        {tooltipEmoji && (
+          <div
+            className="fixed z-50 bg-black/90 text-white rounded-lg px-4 py-3 pointer-events-none transform -translate-x-1/2 max-w-[250px] shadow-lg"
+            style={{
+              left: `${tooltipPosition.x}px`,
+              top: `${tooltipPosition.y - 45}px`,
+            }}
+          >
+            {tooltipEmoji.startsWith("category_") ? (
+              <div className="text-center">
+                <div className="text-lg font-bold mb-1">
+                  {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
                 </div>
-                <motion.button
-                  onClick={closeAiChat}
-                  className="text-gray-500 hover:text-gray-700"
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <X className="h-5 w-5" />
-                </motion.button>
+                <div className="text-sm opacity-80">このカテゴリーから絵文字を選択</div>
               </div>
-              <div className="p-4 h-[200px] overflow-y-auto">
-                {aiMessage && (
-                  <motion.div
-                    className="bg-gray-100 p-3 rounded-lg mb-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    {aiMessage}
-                  </motion.div>
-                )}
+            ) : (
+              <div>
+                <div className="flex items-center mb-1">
+                  <span className="text-xl mr-2">{tooltipEmoji}</span>
+                  <span className="text-base font-bold">
+                    {emojiDescriptions[tooltipEmoji]?.split("：")[0] || tooltipEmoji}
+                  </span>
+                </div>
+                <div className="text-sm opacity-90">{emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}</div>
+                <div className="text-xs mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}</div>
               </div>
-              <div className="p-4 border-t flex">
-                <input
-                  type="text"
-                  placeholder="💬 質問を入力..."
-                  className="flex-1 border rounded-l-lg px-3 py-2 focus:outline-none"
-                />
-                <motion.button
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-r-lg"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="text-xl">📤</span>
-                </motion.button>
-              </div>
-            </motion.div>
+            )}
           </div>
         )}
       </div>
-
-      {/* ドラッグ中の絵文字表示 */}
-      {isDragging && draggingEmoji && (
-        <motion.div
-          className="fixed pointer-events-none text-4xl z-50 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-xl shadow-md"
-          style={{
-            left: `${dragPosition.x}px`,
-            top: `${dragPosition.y}px`,
-            background: "linear-gradient(to bottom right, #f0f4ff, #ffffff)",
-          }}
-          initial={{ scale: 0.8, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-        >
-          {draggingEmoji}
-        </motion.div>
-      )}
-
-      {/* ツールチップ - サイズを大きく、より見やすく改善 */}
-      {tooltipEmoji && (
-        <div
-          className="fixed z-50 bg-black/90 text-white rounded-lg px-4 py-3 pointer-events-none transform -translate-x-1/2 max-w-[250px] shadow-lg"
-          style={{
-            left: `${tooltipPosition.x}px`,
-            top: `${tooltipPosition.y - 45}px`,
-          }}
-        >
-          {tooltipEmoji.startsWith("category_") ? (
-            <div className="text-center">
-              <div className="text-lg font-bold mb-1">
-                {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
-              </div>
-              <div className="text-sm opacity-80">このカテゴリーから絵文字を選択</div>
-            </div>
-          ) : (
-            <div>
-              <div className="flex items-center mb-1">
-                <span className="text-xl mr-2">{tooltipEmoji}</span>
-                <span className="text-base font-bold">
-                  {emojiDescriptions[tooltipEmoji]?.split("：")[0] || tooltipEmoji}
-                </span>
-              </div>
-              <div className="text-sm opacity-90">{emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}</div>
-              <div className="text-xs mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}</div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
