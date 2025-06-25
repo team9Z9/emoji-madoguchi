@@ -8,9 +8,12 @@ import "../styles/globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "自治体絵文字アプリ",
-  description: "絵文字だけで操作できる自治体向けアプリ",
+  title: "絵文字窓口",
+  description: "絵文字で暮らしサポート",
   generator: "v0.dev",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
