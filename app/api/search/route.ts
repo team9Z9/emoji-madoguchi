@@ -21,12 +21,6 @@ export async function POST(request: NextRequest) {
             ? process.env.GCP_ENGINE_ID_YABUKI
             : process.env.GCP_ENGINE_ID_KOMAE;
 
-    // ここでログ出力
-    console.log("GCP_ENGINE_ID_KOMAE:", process.env.GCP_ENGINE_ID_KOMAE);
-    console.log("GCP_ENGINE_ID_YABUKI:", process.env.GCP_ENGINE_ID_YABUKI);
-    console.log("engine param:", engine);
-    console.log("engineId:", engineId);
-
     const endpoint = `https://discoveryengine.googleapis.com/v1alpha/projects/${projectId}/locations/global/collections/default_collection/engines/${engineId}/servingConfigs/default_search:search`;
 
     const payload = {
