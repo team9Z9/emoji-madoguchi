@@ -7,12 +7,6 @@ import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
 import { EMOJIS, PREFECTURES } from "../lib/constants"
 
-// 絵文字の定義
-const emojis = EMOJIS;
-
-// 都道府県・市区町村の定義
-const PREFS = PREFECTURES;
-
 export default function Home() {
   const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
   const [secondEmoji, setSecondEmoji] = useState<string | null>(null)
@@ -888,7 +882,7 @@ export default function Home() {
                 onChange={handlePrefChange}
               >
                 <option value="">都道府県を選択</option>
-                {PREFS.map((pref) => (
+                {PREFECTURES.map((pref) => (
                   <option key={pref.value} value={pref.value}>
                     {pref.label}
                   </option>
@@ -901,7 +895,7 @@ export default function Home() {
                 disabled={!selectedPref}
               >
                 <option value="">市区町村を選択</option>
-                {PREFS.find((p) => p.value === selectedPref)?.cities.map((city) => (
+                {PREFECTURES.find((pref) => pref.value === selectedPref)?.cities.map((city) => (
                   <option key={city.value} value={city.value}>
                     {city.label}
                   </option>
@@ -968,7 +962,7 @@ export default function Home() {
             {/* 絵文字選択グリッド */}
             <div className="grid grid-cols-5 gap-4 mb-4">
               {isSelectingSecond && firstEmoji
-                ? emojis.map((emoji) => (
+                ? EMOJIS.map((emoji) => (
                   <motion.div
                     key={emoji}
                     className="flex items-center justify-center h-20 w-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
@@ -984,7 +978,7 @@ export default function Home() {
                     {emoji}
                   </motion.div>
                 ))
-                : emojis.map((emoji) => (
+                : EMOJIS.map((emoji) => (
                   <motion.div
                     key={emoji}
                     className="flex items-center justify-center h-20 w-20 text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
