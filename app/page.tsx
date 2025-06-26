@@ -278,7 +278,7 @@ export default function Home() {
         body: JSON.stringify({ query, engine }),
       })
       const data = await res.json()
-      if (data.error) {
+      if (!data.error) {
         setApiResults(data.results || data.documents || data || [])
         setViewMode("searchResults")
       }
