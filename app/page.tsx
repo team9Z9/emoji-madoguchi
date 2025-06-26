@@ -13,14 +13,11 @@ import AiChatModal from "../components/ui/ai-chat-modal"
 export default function Home() {
   const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
   const [secondEmoji, setSecondEmoji] = useState<string | null>(null)
-  const [showResults, setShowResults] = useState(false)
-  const [showDetail, setShowDetail] = useState<string | null>(null)
   const [draggingEmoji, setDraggingEmoji] = useState<string | null>(null)
   const [isDraggingOver, setIsDraggingOver] = useState<string | null>(null)
   const [showAiChat, setShowAiChat] = useState(false)
   const [aiMessage, setAiMessage] = useState("")
   const [isSelectingSecond, setIsSelectingSecond] = useState(false)
-  const [showRelatedEmojis, setShowRelatedEmojis] = useState(false)
   const [tooltipEmoji, setTooltipEmoji] = useState<string | null>(null)
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   const [currentPage, setCurrentPage] = useState(1)
@@ -64,45 +61,10 @@ export default function Home() {
     "🏫": "教育・学習支援：学校教育や生涯学習に関する情報やサービス",
   }
 
-  // 絵文字の組み合わせの意味を取得
-  const getEmojiCombinationMeaning = (first: string, second: string) => {
-    // 実際のアプリでは、APIからデータを取得したり、より複雑なロジックを実装する
-    const combinations: Record<string, string> = {
-      "🏫📝": "学校の入学・転校手続きや各種申請方法",
-      "🏥📝": "医療費助成申請や健康保険の手続き方法",
-      "💰👶": "子育て支援金や育児手当の案内",
-      "💰👴": "高齢者向け給付金や介護支援金の案内",
-      "💰🏠": "住宅補助金や引っ越し費用の助成に関する情報",
-      "💰🏫": "教育費支援や奨学金に関する情報",
-      "💰🏥": "医療費助成や健康保険料の支援制度",
-      "👶📝": "出生届や子育てに関する各種手続きの案内",
-      "👶🏥": "子ども向け医療サービスや予防接種の案内",
-      "👶🏫": "子どもの就学手続きや保護者向け情報",
-      "👶🏠": "子育て世帯向け住宅支援や住宅情報",
-      "👴📝": "介護保険や高齢者向け手続きの案内",
-      "👴🏥": "高齢者向け医療サービスや健康診断の案内",
-      "👴🏠": "高齢者向け住宅支援やバリアフリー住宅情報",
-      "📝🏠": "住所変更や引っ越しに関する手続き案内",
-      "📝🗑️": "ごみ出しルールや分別方法の案内",
-      "🗑️📝": "ごみ出しルールや分別方法の案内",
-      "⚠️🏥": "災害時の医療サービスや救急対応の案内",
-      "⚠️👶": "災害時の子どもの安全確保や避難情報",
-      "⚠️👴": "災害時の高齢者の安全確保や避難情報",
-      "📍🏫": "学校や教育施設の場所案内や地図情報",
-      "📍🏥": "医療機関や健康施設の場所案内",
-      "📍🏠": "住宅展示場や不動産情報の案内",
-    }
-
-    const key = `${first}${second}`
-    return combinations[key] || `${first}と${second}に関する行政サービスや支援情報`
-  }
-
   // 検索実行
   const executeSearch = () => {
     if (firstEmoji && secondEmoji) {
       setCurrentPage(1) // ページをリセット
-      setShowResults(true)
-      setShowRelatedEmojis(false)
     }
   }
 
@@ -111,54 +73,6 @@ export default function Home() {
     setFirstEmoji(first)
     setSecondEmoji(second)
     setCurrentPage(1) // ページをリセット
-    setShowResults(true)
-    setShowRelatedEmojis(false)
-  }
-
-  // 再検索用の絵文字を表示
-  const showRelatedEmojisForSearch = () => {
-    setShowRelatedEmojis(true)
-  }
-
-  // 絵文字を選択して再検索
-  const selectEmojiForResearch = (emoji: string) => {
-    setSecondEmoji(emoji)
-    setShowResults(true)
-    setShowRelatedEmojis(false)
-  }
-
-  const handleBackButton = () => {
-    if (showDetail) {
-      // 詳細画面から検索結果一覧に戻る
-      setShowDetail(null)
-    } else if (showResults) {
-      if (showRelatedEmojis) {
-        // 関連絵文字選択画面から検索結果に戻る
-        setShowRelatedEmojis(false)
-      } else {
-        // 検索結果一覧からホーム画面に戻る
-        setShowResults(false)
-      }
-    } else if (isSelectingSecond) {
-      // 2つ目の絵文字選択からホーム画面に戻る
-      setIsSelectingSecond(false)
-      setFirstEmoji(null)
-    } else {
-      // ホーム画面の場合は何もしない
-      return
-    }
-  }
-
-  // 検索結果をリセット
-  const resetSelection = () => {
-    setFirstEmoji(null)
-    setSecondEmoji(null)
-    setShowResults(false)
-    setShowDetail(null)
-    setShowAiChat(false)
-    setAiMessage("")
-    setIsSelectingSecond(false)
-    setShowRelatedEmojis(false)
   }
 
   // AIチャットを開く
@@ -174,16 +88,6 @@ export default function Home() {
   const closeAiChat = () => {
     setShowAiChat(false)
     setAiMessage("")
-  }
-
-  // 詳細画面を表示
-  const showDetailScreen = (id: string) => {
-    setShowDetail(id)
-  }
-
-  // 詳細画面を閉じる
-  const closeDetailScreen = () => {
-    setShowDetail(null)
   }
 
   // 絵文字を選択
@@ -362,13 +266,7 @@ export default function Home() {
   // API検索実行（絵文字2個選択時の検索ボタンから呼び出し）
   const executeApiSearch = async () => {
     if (!firstEmoji || !secondEmoji) return
-    setIsApiSearching(true)
-    setApiError(null)
     setApiResults([])
-    setShowResults(false)
-    setShowDetail(null)
-    setShowRelatedEmojis(false)
-    try {
       const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`
 
       // 選択された検索エンジンを取得
@@ -381,40 +279,15 @@ export default function Home() {
       })
       const data = await res.json()
       if (data.error) {
-        setApiError(data.error)
-      } else {
         setApiResults(data.results || data.documents || data || [])
         setViewMode("searchResults")
       }
-    } catch (e) {
-      setApiError("検索に失敗しました")
-    }
-    setIsApiSearching(false)
   }
 
-  const [isApiSearching, setIsApiSearching] = useState(false)
   const [apiResults, setApiResults] = useState<any[]>([])
-  const [apiError, setApiError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"top" | "home" | "searchResults" | "searchDetail">("top");
   const [selectedResult, setSelectedResult] = useState<any | null>(null)
 
-  function handleBack(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-    event.preventDefault();
-    if (viewMode === "searchDetail") {
-      setViewMode("searchResults");
-      setSelectedResult(null);
-    } else if (viewMode === "searchResults") {
-      setViewMode("home");
-      setFirstEmoji(null);
-      setSecondEmoji(null);
-      setApiResults([]);
-      setApiError(null);
-    } else if (isSelectingSecond) {
-      setIsSelectingSecond(false);
-      setFirstEmoji(null);
-    }
-    // すでにホーム画面の場合は何もしない
-  }
   function handleResultClick(item: any): void {
     setSelectedResult(item);
     setViewMode("searchDetail");
@@ -459,7 +332,6 @@ export default function Home() {
   // ページネーション用
   const totalResults = apiResults.length
   const totalPages = Math.ceil(totalResults / resultsPerPage)
-  const paginatedResults = apiResults.slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage)
 
   function getEmojiCategory(tooltipEmoji: string): React.ReactNode {
     // カテゴリー名を返す（簡易実装: emojiDescriptionsの説明文から推測）
