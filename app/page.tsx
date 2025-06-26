@@ -2,12 +2,13 @@
 
 import React, { useState, useRef } from "react"
 import { motion } from "framer-motion"
-import { ExternalLink, Calendar, Tag } from "lucide-react"
+import { ExternalLink, Calendar, Tag, ArrowLeft } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
 import { EMOJIS, PREFECTURES } from "../lib/constants"
 import AiChatButton from "../components/ui/ai-chat"
 import AiChatModal from "../components/ui/ai-chat-modal"
+import ResetSearchButton from "../components/ui/reset-search-button";
 
 
 export default function Home() {
@@ -267,21 +268,21 @@ export default function Home() {
   const executeApiSearch = async () => {
     if (!firstEmoji || !secondEmoji) return
     setApiResults([])
-      const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`
+    const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`
 
-      // 選択された検索エンジンを取得
-      const engine = selectedPref;
+    // 選択された検索エンジンを取得
+    const engine = selectedPref;
 
-      const res = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, engine }),
-      })
-      const data = await res.json()
-      if (!data.error) {
-        setApiResults(data.results || data.documents || data || [])
-        setViewMode("searchResults")
-      }
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, engine }),
+    })
+    const data = await res.json()
+    if (!data.error) {
+      setApiResults(data.results || data.documents || data || [])
+      setViewMode("searchResults")
+    }
   }
 
   const [apiResults, setApiResults] = useState<any[]>([])
@@ -531,6 +532,19 @@ export default function Home() {
         {/* 検索結果一覧 */}
         {viewMode === "searchResults" && (
           <div>
+            {/* 一番上に表示（下との間隔を広げたい場合はmb-8など調整） */}
+            <div className="mb-8">
+              <ResetSearchButton
+                onClick={() => {
+                  setViewMode("home");
+                  setFirstEmoji(null);
+                  setSecondEmoji(null);
+                  setApiResults([]);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+
             <div className="flex flex-col items-center justify-center mb-6 bg-white p-3 rounded-xl shadow-sm">
               <div className="flex items-center">
                 <span className="text-3xl">{firstEmoji}</span>
@@ -643,20 +657,16 @@ export default function Home() {
               </div>
             )}
             {/* 再検索ボタン */}
-            <div className="flex justify-center mt-6">
-              <button
-                className="px-4 py-2 rounded bg-white text-gray-700 shadow border border-gray-200 flex items-center gap-2"
+            <div className="mb-8">
+              <ResetSearchButton
                 onClick={() => {
-                  setViewMode("home")
-                  setFirstEmoji(null)
-                  setSecondEmoji(null)
-                  setApiResults([])
-                  setCurrentPage(1)
+                  setViewMode("home");
+                  setFirstEmoji(null);
+                  setSecondEmoji(null);
+                  setApiResults([]);
+                  setCurrentPage(1);
                 }}
-              >
-                <span className="text-lg">🔄</span>
-                <span>別の絵文字で再検索</span>
-              </button>
+              />
             </div>
             {/* 右下にAIチャットボットのアイコンを設置 */}
             <div>
@@ -667,56 +677,70 @@ export default function Home() {
 
         {/* 検索結果詳細 */}
         {viewMode === "searchDetail" && selectedResult && (
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6">
+          <div className="relative flex flex-col items-center">
+            {/* 左上に戻るボタン */}
+            <button
+              onClick={() => {
+                setViewMode("searchResults");
+                setSelectedResult(null);
+              }}
+              aria-label="一覧に戻る"
+              className="absolute -top-4 -left-4 z-10 bg-white rounded-full p-2 shadow hover:bg-gray-100 border border-gray-200"
+              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-700" />
+            </button>
 
-              {/* タイトル */}
-              <h1 className="text-xl font-bold text-gray-900 mb-3 leading-relaxed">
-                {selectedResult.document?.derivedStructData?.title ||
-                  selectedResult.title ||
-                  "No title"}
-              </h1>
-              {/* 公開日・引用先URL */}
-              <div className="flex flex-col gap-2 text-sm text-gray-500 border-b border-gray-200 pb-4 mb-4">
-                <div className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-1 inline-block align-text-bottom" />
-                  <span>
-                    公開日：
-                    {
-                      // snippetの先頭から日付を抽出して日本語表記に変換
-                      (() => {
-                        const snippet = selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet || "";
-                        const match = snippet.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
-                        return match ? formatDateToJapanese(match[0])
-                          : <span className="text-gray-400">―</span>;
-                      })()
-                    }
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <a
-                    href={
-                      selectedResult.document?.derivedStructData?.link ||
-                      selectedResult.document?.derivedStructData?.url ||
-                      selectedResult.url ||
-                      "#"
-                    }
-                    className="text-blue-600 break-all flex items-center"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {selectedResult.document?.derivedStructData?.link ||
-                      selectedResult.document?.derivedStructData?.url ||
-                      selectedResult.url ||
-                      ""}
-                    <ExternalLink className="w-6 h-6 inline-block align-text-bottom" />
-                  </a>
+            {/* 詳細カード本体 */}
+            <div className="bg-white rounded-xl shadow-md overflow-hidden mt-8 w-full">
+              <div className="p-6">
+                {/* タイトル */}
+                <h1 className="text-xl font-bold text-gray-900 mb-3 leading-relaxed">
+                  {selectedResult.document?.derivedStructData?.title ||
+                    selectedResult.title ||
+                    "No title"}
+                </h1>
+                {/* 公開日・引用先URL */}
+                <div className="flex flex-col gap-2 text-sm text-gray-500 border-b border-gray-200 pb-4 mb-4">
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-1 inline-block align-text-bottom" />
+                    <span>
+                      公開日：
+                      {
+                        // snippetの先頭から日付を抽出して日本語表記に変換
+                        (() => {
+                          const snippet = selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet || "";
+                          const match = snippet.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
+                          return match ? formatDateToJapanese(match[0])
+                            : <span className="text-gray-400">―</span>;
+                        })()
+                      }
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <a
+                      href={
+                        selectedResult.document?.derivedStructData?.link ||
+                        selectedResult.document?.derivedStructData?.url ||
+                        selectedResult.url ||
+                        "#"
+                      }
+                      className="text-blue-600 break-all flex items-center"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {selectedResult.document?.derivedStructData?.link ||
+                        selectedResult.document?.derivedStructData?.url ||
+                        selectedResult.url ||
+                        ""}
+                      <ExternalLink className="w-6 h-6 inline-block align-text-bottom" />
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
-            {/* 右下にAIチャットボットのアイコンを設置 */}
-            <div>
-              <AiChatButton onClick={openAiChat} />
+              <div>
+                <AiChatButton onClick={openAiChat} />
+              </div>
             </div>
           </div>
         )}
