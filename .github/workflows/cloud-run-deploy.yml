@@ -3,8 +3,6 @@ name: Deploy to Cloud Run
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -26,6 +24,7 @@ jobs:
 
     - name: Google Auth
       id: auth
+      if: github.actor != 'dependabot[bot]'
       uses: google-github-actions/auth@v1
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
