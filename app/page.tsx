@@ -230,7 +230,7 @@ export default function Home() {
 |---------|-----------|
 | 1人     | 30,000円  |
 | 2人     | 45,000円  |
-| 3人     | 60,000円  |
+| 3人    
 | 4人     | 75,000円  |
 | 5人以上  | 1人につき15,000円加算 |
 
@@ -857,6 +857,12 @@ export default function Home() {
       setViewMode("home");
     }
   }
+  // タッチデバイス判定
+  const isTouchDevice = typeof window !== "undefined" && (
+    "ontouchstart" in window ||
+    (window.navigator && window.navigator.maxTouchPoints > 0)
+  );
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       <div className="w-full max-w-md h-full p-4 pb-20 overflow-y-auto">
@@ -960,21 +966,26 @@ export default function Home() {
             </div>
 
             {/* 絵文字選択グリッド */}
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 mb-4">
+            <div
+              className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 mb-4 select-none"
+              style={{ userSelect: "none" }}
+            >
               {EMOJIS.map((emoji) => (
                 <motion.div
                   key={emoji}
-                  className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95"
+                  className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95 select-none"
+                  style={{ userSelect: "none", WebkitUserSelect: "none" }}
+                  onTouchStart={isTouchDevice ? (e) => handleTouchStart(emoji, e) : undefined}
+                  onTouchEnd={isTouchDevice ? handleTouchEnd : undefined}
+                  onMouseOver={!isTouchDevice ? (e) => handleMouseOver(emoji, e) : undefined}
+                  onMouseOut={!isTouchDevice ? handleMouseOut : undefined}
                   onMouseDown={(e) => handleDragStart(emoji, e)}
-                  onTouchStart={(e) => handleTouchStart(emoji, e)}
-                  onTouchEnd={handleTouchEnd}
-                  onMouseOver={(e) => handleMouseOver(emoji, e)}
-                  onMouseOut={handleMouseOut}
                   onClick={() => selectEmoji(emoji)}
+                  onContextMenu={(e) => e.preventDefault()}
                   whileHover={{ scale: 1.07 }}
                   whileTap={{ scale: 0.96 }}
                 >
-                  {emoji}
+                  <span className="select-none" style={{ userSelect: "none", WebkitUserSelect: "none" }}>{emoji}</span>
                 </motion.div>
               ))}
             </div>
@@ -1233,31 +1244,41 @@ export default function Home() {
         {/* ツールチップ - サイズを大きく、より見やすく改善 */}
         {tooltipEmoji && (
           <div
-            className="fixed z-50 bg-black/90 text-white rounded-lg px-4 py-3 pointer-events-none transform -translate-x-1/2 max-w-[250px] shadow-lg"
+            className="fixed z-50 bg-black/90 text-white rounded-lg px-3 py-2 pointer-events-none transform -translate-x-1/2 max-w-[200px] shadow-lg text-xs"
             style={{
-              left: `${tooltipPosition.x}px`,
-              top: `${tooltipPosition.y - 45}px`,
+              left: (() => {
+                // 画面幅を取得
+                const tooltipWidth = 200; // max-w-[200px]と合わせる
+                const margin = 8; // 端からの余白
+                let x = tooltipPosition.x;
+                if (x - tooltipWidth / 2 < margin) {
+                  x = tooltipWidth / 2 + margin;
+                } else if (x + tooltipWidth / 2 > window.innerWidth - margin) {
+                  x = window.innerWidth - tooltipWidth / 2 - margin;
+                }
+                return `${x}px`;
+              })(),
+              top: `${tooltipPosition.y - (isTouchDevice ? 90 : 45)}px`,
             }}
-          >
-            {tooltipEmoji.startsWith("category_") ? (
-              <div className="text-center">
-                <div className="text-lg font-bold mb-1">
-                  {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
-                </div>
-                <div className="text-sm opacity-80">このカテゴリーから絵文字を選択</div>
+          >            {tooltipEmoji.startsWith("category_") ? (
+            <div className="text-center">
+              <div className="text-base font-bold mb-1">
+                {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
               </div>
-            ) : (
-              <div>
-                <div className="flex items-center mb-1">
-                  <span className="text-xl mr-2">{tooltipEmoji}</span>
-                  <span className="text-base font-bold">
-                    {emojiDescriptions[tooltipEmoji]?.split("：")[0] || tooltipEmoji}
-                  </span>
-                </div>
-                <div className="text-sm opacity-90">{emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}</div>
-                <div className="text-xs mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}</div>
+              <div className="text-xs opacity-80">このカテゴリーから絵文字を選択</div>
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-center mb-1">
+                <span className="text-lg mr-2">{tooltipEmoji}</span>
+                <span className="font-bold">
+                  {emojiDescriptions[tooltipEmoji]?.split("：")[0] || tooltipEmoji}
+                </span>
               </div>
-            )}
+              <div className="opacity-90">{emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}</div>
+              <div className="mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}</div>
+            </div>
+          )}
           </div>
         )}
       </div>
