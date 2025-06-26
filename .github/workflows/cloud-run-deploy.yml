@@ -24,8 +24,7 @@ jobs:
 
     - name: Google Auth
       id: auth
-      if: github.actor != 'dependabot[bot]'
-      uses: google-github-actions/auth@v1
+      uses: google-github-act6ions/auth@v1
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
