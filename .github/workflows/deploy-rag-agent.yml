@@ -1,0 +1,62 @@
+name: Deploy RAG Agent to Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'agents/**'
+  workflow_dispatch: # 手動実行用トリガー
+
+env:
+  PROJECT_ID: chronos-sandbox # Google Cloud プロジェクトID
+  REGION: us-central1 # デプロイリージョン
+  SERVICE_NAME: agent # Cloud Runサービス名
+
+jobs:
+  deploy:
+    name: Build and Deploy RAG Agent
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Google Cloud Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        env:
+          IMAGE_NAME: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-source-deploy/${{ env.SERVICE_NAME }}:${{ github.sha }}
+        run: |
+          docker build -t $IMAGE_NAME -f agents/RAG/Dockerfile .
+          docker push $IMAGE_NAME
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-source-deploy/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          env_vars: |
+            PYTHONUNBUFFERED=1
+            DEBUG_LEVEL=INFO
+          flags: |
+            --allow-unauthenticated
+            --port=8080
+            --memory=2Gi
+            --timeout=300
+            --cpu=1
+            --min-instances=0
+            --max-instances=10

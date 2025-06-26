@@ -11,6 +11,7 @@ services:
       - GCP_ENGINE_ID_KOMAE=chronos_1748843978267
       - GCP_ENGINE_ID_YABUKI=yabuki_1750746007130
       - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account.json
+      - RAG_API_URL=http://rag-agent:8080
     volumes:
       # ホットリロード用（開発時のみ）
       - ./app:/app/app
@@ -30,3 +31,37 @@ services:
       - ./.gcp/service-account.json:/app/service-account.json
 
     command: npm run dev
+    depends_on:
+      - rag-agent
+
+  rag-agent:
+    build:
+      context: .
+      dockerfile: agents/RAG/Dockerfile
+    ports:
+      - "8000:8080"
+    environment:
+      - GOOGLE_CLOUD_PROJECT=chronos-sandbox
+      - VERTEX_AI_LOCATION=asia-northeast1
+      - RAG_CORPUS=${RAG_CORPUS_ID:-projects/chronos-sandbox/locations/us-central1/ragCorpora/default_corpus}
+      - GOOGLE_GENAI_USE_VERTEXAI=1
+      - PYTHONUNBUFFERED=1
+      - DEBUG_LEVEL=DEBUG
+      - PY_NO_COLORS=0
+      - FORCE_COLOR=1
+      - PORT=8080
+      - TEST_MODE=1
+    command: python -u /app/test_server.py
+    volumes:
+      # 開発時のホットリロード用
+      - ./agents:/app/agents
+      # GCPサービスアカウントキーのマウント
+      - ./.gcp/service-account.json:/app/service-account.json
+      # ログディレクトリをマウント
+      - ./logs:/app/logs
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
