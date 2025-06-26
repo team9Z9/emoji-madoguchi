@@ -651,7 +651,6 @@ export default function Home() {
                   setFirstEmoji(null)
                   setSecondEmoji(null)
                   setApiResults([])
-                  setApiError(null)
                   setCurrentPage(1)
                 }}
               >
