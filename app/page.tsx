@@ -81,7 +81,7 @@ export default function Home() {
     setShowAiChat(true)
     // AIの応答をシミュレート
     setTimeout(() => {
-      setAiMessage(`${firstEmoji} + ${secondEmoji} について知りたいことはありますか？`)
+      setAiMessage("💡さらに詳しく知りたいですか？※開発中")
     }, 500)
   }
 
