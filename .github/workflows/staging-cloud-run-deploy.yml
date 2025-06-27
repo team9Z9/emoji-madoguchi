@@ -1,13 +1,13 @@
-name: Deploy to Cloud Run
+name: STAGING Deploy to Cloud Run
 
 on:
   push:
-    branches: [ main ]
+    branches: [ staging ]
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  SERVICE_NAME: web
-  REGION: asia-northeast1  # 東京リージョン
+  SERVICE_NAME: staging-web
+  REGION: us-central1
 
 jobs:
   deploy:
@@ -43,15 +43,4 @@ jobs:
           --image=us-central1-docker.pkg.dev/$PROJECT_ID/nextjs-repo/$SERVICE_NAME:${{ github.sha }} \
           --platform=managed \
           --region=$REGION \
-          --allow-unauthenticated \
-          --memory=1Gi \
-          --cpu=1 \
-          --min-instances=0 \
-          --max-instances=10 \
-          --concurrency=80 \
-          --port=8080 \
           --service-account="ai-search-chronos@chronos-sandbox.iam.gserviceaccount.com"
-
-    - name: Show Output URL
-      run: |
-        echo "サービスURL: $(gcloud run services describe $SERVICE_NAME --region=$REGION --format='value(status.url)')"
