@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react"
 import { motion } from "framer-motion"
-import { ExternalLink, Calendar, Tag, ArrowLeft } from "lucide-react"
+import { Calendar, Tag } from "lucide-react"
 import { formatDateToJapanese } from "../lib/date-format"
 import { relatedFilters } from "../lib/related-filters"
 import { EMOJIS, PREFECTURES } from "../lib/constants"
@@ -287,12 +287,6 @@ export default function Home() {
 
   const [apiResults, setApiResults] = useState<any[]>([])
   const [viewMode, setViewMode] = useState<"top" | "home" | "searchResults" | "searchDetail">("top");
-  const [selectedResult, setSelectedResult] = useState<any | null>(null)
-
-  function handleResultClick(item: any): void {
-    setSelectedResult(item);
-    setViewMode("searchDetail");
-  }
 
   // filtersの定義の後にfilteredResultsを定義
   const filterKey = `${firstEmoji}+${secondEmoji}`;
@@ -587,6 +581,11 @@ export default function Home() {
                   doc.title ||
                   doc.htmlTitle ||
                   "No title";
+                const url =
+                  doc.link ||
+                  doc.url ||
+                  item.url ||
+                  "#";
                 const snippet =
                   doc.snippets?.[0]?.snippet ||
                   doc.pagemap?.metatags?.[0]?.["og:description"] ||
@@ -609,13 +608,17 @@ export default function Home() {
                     className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => handleResultClick(item)}
                   >
                     <div className="p-4">
                       {/* タイトル */}
-                      <h3 className="text-lg font-medium text-blue-600 hover:text-blue-800 mb-2 line-clamp-2">
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-lg font-medium text-blue-600 hover:text-blue-800 mb-2 line-clamp-2 block"
+                      >
                         {title}
-                      </h3>
+                      </a>
                       {/* リード文 */}
                       <p className="text-sm text-gray-700 mb-3 line-clamp-2">
                         {snippet}
@@ -675,75 +678,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 検索結果詳細 */}
-        {viewMode === "searchDetail" && selectedResult && (
-          <div className="relative flex flex-col items-center">
-            {/* 左上に戻るボタン */}
-            <button
-              onClick={() => {
-                setViewMode("searchResults");
-                setSelectedResult(null);
-              }}
-              aria-label="一覧に戻る"
-              className="absolute -top-4 -left-4 z-10 bg-white rounded-full p-2 shadow hover:bg-gray-100 border border-gray-200"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
-            >
-              <ArrowLeft className="w-6 h-6 text-gray-700" />
-            </button>
-
-            {/* 詳細カード本体 */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden mt-8 w-full">
-              <div className="p-6">
-                {/* タイトル */}
-                <h1 className="text-xl font-bold text-gray-900 mb-3 leading-relaxed">
-                  {selectedResult.document?.derivedStructData?.title ||
-                    selectedResult.title ||
-                    "No title"}
-                </h1>
-                {/* 公開日・引用先URL */}
-                <div className="flex flex-col gap-2 text-sm text-gray-500 border-b border-gray-200 pb-4 mb-4">
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1 inline-block align-text-bottom" />
-                    <span>
-                      公開日：
-                      {
-                        // snippetの先頭から日付を抽出して日本語表記に変換
-                        (() => {
-                          const snippet = selectedResult.document?.derivedStructData?.snippets?.[0]?.snippet || "";
-                          const match = snippet.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
-                          return match ? formatDateToJapanese(match[0])
-                            : <span className="text-gray-400">―</span>;
-                        })()
-                      }
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <a
-                      href={
-                        selectedResult.document?.derivedStructData?.link ||
-                        selectedResult.document?.derivedStructData?.url ||
-                        selectedResult.url ||
-                        "#"
-                      }
-                      className="text-blue-600 break-all flex items-center"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {selectedResult.document?.derivedStructData?.link ||
-                        selectedResult.document?.derivedStructData?.url ||
-                        selectedResult.url ||
-                        ""}
-                      <ExternalLink className="w-6 h-6 inline-block align-text-bottom" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <AiChatButton onClick={openAiChat} />
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* AIチャットモーダル */}
         <div>
