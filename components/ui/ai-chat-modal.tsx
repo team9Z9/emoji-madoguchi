@@ -7,7 +7,11 @@ type AiChatModalProps = {
   onClose: () => void;
 };
 
-const AiChatModal: React.FC<AiChatModalProps> = ({ show, message, onClose }) => {
+const AiChatModal: React.FC<AiChatModalProps> = ({
+  show,
+  message,
+  onClose,
+}) => {
   if (!show) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end justify-center p-4 z-30">
@@ -44,7 +48,7 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ show, message, onClose }) => 
         <div className="p-4 border-t flex">
           <input
             type="text"
-            placeholder="💬 質問を入力..."
+            placeholder="※開発中"
             className="flex-1 border rounded-l-lg px-3 py-2 focus:outline-none"
           />
           <motion.button
