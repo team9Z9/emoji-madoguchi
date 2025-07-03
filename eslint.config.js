@@ -21,6 +21,14 @@ module.exports = [
         ecmaFeatures: { jsx: true },
         project: "./tsconfig.json",
       },
+      globals: {
+        window: "readonly",
+        document: "readonly",
+        fetch: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        NodeJS: "readonly",
+      },
     },
     plugins: {
       "@typescript-eslint": ts,
