@@ -504,54 +504,37 @@ export default function Home() {
               className="grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 mb-4 select-none"
               style={{ userSelect: "none" }}
             >
-              {EMOJIS.map((emoji) => {
-                // 2つ目選択時、1つ目と同じ絵文字は選択できないようにする
-                const isDisabled = isSelectingSecond && firstEmoji === emoji;
-                return (
-                  <motion.div
-                    key={emoji}
-                    className={`flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95 select-none
-                      ${isDisabled ? "opacity-40 cursor-not-allowed grayscale" : ""}
-                    `}
+              {EMOJIS.map((emoji) => (
+                <motion.div
+                  key={emoji}
+                  className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95 select-none"
+                  style={{ userSelect: "none", WebkitUserSelect: "none" }}
+                  onTouchStart={
+                    isTouchDevice
+                      ? (e) => handleTouchStart(emoji, e)
+                      : undefined
+                  }
+                  onTouchEnd={isTouchDevice ? handleTouchEnd : undefined}
+                  onMouseOver={
+                    !isTouchDevice
+                      ? (e) => handleMouseOver(emoji, e)
+                      : undefined
+                  }
+                  onMouseOut={!isTouchDevice ? handleMouseOut : undefined}
+                  onMouseDown={(e) => handleDragStart(emoji, e)}
+                  onClick={() => selectEmoji(emoji)}
+                  onContextMenu={(e) => e.preventDefault()}
+                  whileHover={{ scale: 1.07 }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  <span
+                    className="select-none"
                     style={{ userSelect: "none", WebkitUserSelect: "none" }}
-                    onTouchStart={
-                      isTouchDevice && !isDisabled
-                        ? (e) => handleTouchStart(emoji, e)
-                        : undefined
-                    }
-                    onTouchEnd={
-                      isTouchDevice && !isDisabled ? handleTouchEnd : undefined
-                    }
-                    onMouseOver={
-                      !isTouchDevice && !isDisabled
-                        ? (e) => handleMouseOver(emoji, e)
-                        : undefined
-                    }
-                    onMouseOut={
-                      !isTouchDevice && !isDisabled ? handleMouseOut : undefined
-                    }
-                    onMouseDown={
-                      !isDisabled ? (e) => handleDragStart(emoji, e) : undefined
-                    }
-                    onClick={!isDisabled ? () => selectEmoji(emoji) : undefined}
-                    onContextMenu={(e) => e.preventDefault()}
-                    whileHover={!isDisabled ? { scale: 1.07 } : undefined}
-                    whileTap={!isDisabled ? { scale: 0.96 } : undefined}
-                    aria-disabled={isDisabled}
                   >
-                    <span
-                      className="select-none"
-                      style={{
-                        userSelect: "none",
-                        WebkitUserSelect: "none",
-                        pointerEvents: isDisabled ? "none" : undefined,
-                      }}
-                    >
-                      {emoji}
-                    </span>
-                  </motion.div>
-                );
-              })}
+                    {emoji}
+                  </span>
+                </motion.div>
+              ))}
             </div>
 
             {/* カテゴリーの説明 */}
