@@ -1,42 +1,41 @@
-"use client"
+"use client";
 
-import React, { useState, useRef } from "react"
-import { motion } from "framer-motion"
-import { Calendar, Tag } from "lucide-react"
-import { formatDateToJapanese } from "../lib/date-format"
-import { relatedFilters } from "../lib/related-filters"
-import { EMOJIS, PREFECTURES } from "../lib/constants"
-import AiChatButton from "../components/ui/ai-chat"
-import AiChatModal from "../components/ui/ai-chat-modal"
+import React, { useState, useRef } from "react";
+import { motion } from "framer-motion";
+import { Calendar, Tag } from "lucide-react";
+import { formatDateToJapanese } from "../lib/date-format";
+import { relatedFilters } from "../lib/related-filters";
+import { EMOJIS, PREFECTURES } from "../lib/constants";
+import AiChatButton from "../components/ui/ai-chat";
+import AiChatModal from "../components/ui/ai-chat-modal";
 import ResetSearchButton from "../components/ui/reset-search-button";
 
-
 export default function Home() {
-  const [firstEmoji, setFirstEmoji] = useState<string | null>(null)
-  const [secondEmoji, setSecondEmoji] = useState<string | null>(null)
-  const [draggingEmoji, setDraggingEmoji] = useState<string | null>(null)
-  const [isDraggingOver, setIsDraggingOver] = useState<string | null>(null)
-  const [showAiChat, setShowAiChat] = useState(false)
-  const [aiMessage, setAiMessage] = useState("")
-  const [isSelectingSecond, setIsSelectingSecond] = useState(false)
-  const [tooltipEmoji, setTooltipEmoji] = useState<string | null>(null)
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
-  const [currentPage, setCurrentPage] = useState(1)
-  const [resultsPerPage] = useState(5)
+  const [firstEmoji, setFirstEmoji] = useState<string | null>(null);
+  const [secondEmoji, setSecondEmoji] = useState<string | null>(null);
+  const [draggingEmoji, setDraggingEmoji] = useState<string | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState<string | null>(null);
+  const [showAiChat, setShowAiChat] = useState(false);
+  const [aiMessage, setAiMessage] = useState("");
+  const [isSelectingSecond, setIsSelectingSecond] = useState(false);
+  const [tooltipEmoji, setTooltipEmoji] = useState<string | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [resultsPerPage] = useState(5);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedPref, setSelectedPref] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
 
   // ドラッグ中の絵文字の位置を追跡
-  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
 
   // ドロップ領域の参照
-  const firstDropRef = useRef<HTMLDivElement>(null)
-  const secondDropRef = useRef<HTMLDivElement>(null)
+  const firstDropRef = useRef<HTMLDivElement>(null);
+  const secondDropRef = useRef<HTMLDivElement>(null);
 
   // 長押し検出用のタイマー
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 検索履歴のサンプルデータを使い方マニュアルに変更し、数を減らす
   const emojiCombinationGuide = [
@@ -46,7 +45,7 @@ export default function Home() {
     { firstEmoji: "📍", secondEmoji: "🏥", description: "医療機関案内" },
     { firstEmoji: "👴", secondEmoji: "🏥", description: "高齢者医療" },
     { firstEmoji: "🗑️", secondEmoji: "📝", description: "ごみ出し案内" },
-  ]
+  ];
 
   // 絵文字の説明
   const emojiDescriptions: Record<string, string> = {
@@ -60,238 +59,261 @@ export default function Home() {
     "🏠": "住宅支援・居住・引っ越し：住宅補助や引っ越し手続きの情報",
     "🏥": "医療・健康診断・予防接種：医療機関や健康診断、予防接種の案内",
     "🏫": "教育・学習支援：学校教育や生涯学習に関する情報やサービス",
-  }
+  };
 
   // 検索実行
   const executeSearch = () => {
     if (firstEmoji && secondEmoji) {
-      setCurrentPage(1) // ページをリセット
+      setCurrentPage(1); // ページをリセット
     }
-  }
+  };
 
   // 検索履歴から検索を実行する関数
   const searchFromHistory = (first: string, second: string) => {
-    setFirstEmoji(first)
-    setSecondEmoji(second)
-    setCurrentPage(1) // ページをリセット
-  }
+    setFirstEmoji(first);
+    setSecondEmoji(second);
+    setCurrentPage(1); // ページをリセット
+  };
 
   // AIチャットを開く
   const openAiChat = () => {
-    setShowAiChat(true)
+    setShowAiChat(true);
     // AIの応答をシミュレート
     setTimeout(() => {
-      setAiMessage("💡さらに詳しく知りたいですか？※開発中")
-    }, 500)
-  }
+      setAiMessage("💡さらに詳しく知りたいですか？※開発中");
+    }, 500);
+  };
 
   // AIチャットを閉じる
   const closeAiChat = () => {
-    setShowAiChat(false)
-    setAiMessage("")
-  }
+    setShowAiChat(false);
+    setAiMessage("");
+  };
 
   // 絵文字を選択
   const selectEmoji = (emoji: string) => {
     if (!firstEmoji) {
-      setFirstEmoji(emoji)
-      setIsSelectingSecond(true)
+      setFirstEmoji(emoji);
+      setIsSelectingSecond(true);
     } else if (isSelectingSecond) {
-      setSecondEmoji(emoji)
-      setIsSelectingSecond(false)
-      executeSearch()
+      setSecondEmoji(emoji);
+      setIsSelectingSecond(false);
+      executeSearch();
     }
-  }
+  };
 
   // ツールチップを表示
   const showTooltip = (emoji: string, x: number, y: number) => {
-    setTooltipEmoji(emoji)
-    setTooltipPosition({ x, y })
-  }
+    setTooltipEmoji(emoji);
+    setTooltipPosition({ x, y });
+  };
 
   // ツールチップを非表示
   const hideTooltip = () => {
-    setTooltipEmoji(null)
-  }
+    setTooltipEmoji(null);
+  };
 
   // マウスオーバーハンドラー
   const handleMouseOver = (emoji: string, e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    showTooltip(emoji, rect.left + rect.width / 2, rect.top - 10)
-  }
+    const rect = e.currentTarget.getBoundingClientRect();
+    showTooltip(emoji, rect.left + rect.width / 2, rect.top - 10);
+  };
 
   // マウスアウトハンドラー
   const handleMouseOut = () => {
-    hideTooltip()
-  }
+    hideTooltip();
+  };
 
   // タッチスタートハンドラー
   const handleTouchStart = (emoji: string, e: React.TouchEvent) => {
-    const touch = e.touches[0]
-    const rect = e.currentTarget.getBoundingClientRect()
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
 
     // 長押し検出用のタイマーをセット
     if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
+      clearTimeout(longPressTimerRef.current);
     }
 
     longPressTimerRef.current = setTimeout(() => {
-      showTooltip(emoji, rect.left + rect.width / 2, rect.top - 10)
-    }, 500) // 500ms以上の長押しでツールチップを表示
+      showTooltip(emoji, rect.left + rect.width / 2, rect.top - 10);
+    }, 500); // 500ms以上の長押しでツールチップを表示
 
     // ドラッグ開始の処理
-    setDraggingEmoji(emoji)
-    setIsDragging(true)
-    setDragPosition({ x: touch.clientX, y: touch.clientY })
+    setDraggingEmoji(emoji);
+    setIsDragging(true);
+    setDragPosition({ x: touch.clientX, y: touch.clientY });
 
     // タッチ移動を追跡
     const handleTouchMove = (e: TouchEvent) => {
       // 長押しタイマーをクリア（ドラッグ中はツールチップを表示しない）
       if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current)
-        longPressTimerRef.current = null
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
       }
 
-      const touch = e.touches[0]
-      setDragPosition({ x: touch.clientX, y: touch.clientY })
+      const touch = e.touches[0];
+      setDragPosition({ x: touch.clientX, y: touch.clientY });
 
       // ドロップ領域上にあるかチェック
-      if (firstDropRef.current && isPointInElement(touch.clientX, touch.clientY, firstDropRef.current)) {
-        setIsDraggingOver("first")
-      } else if (secondDropRef.current && isPointInElement(touch.clientX, touch.clientY, secondDropRef.current)) {
-        setIsDraggingOver("second")
+      if (
+        firstDropRef.current &&
+        isPointInElement(touch.clientX, touch.clientY, firstDropRef.current)
+      ) {
+        setIsDraggingOver("first");
+      } else if (
+        secondDropRef.current &&
+        isPointInElement(touch.clientX, touch.clientY, secondDropRef.current)
+      ) {
+        setIsDraggingOver("second");
       } else {
-        setIsDraggingOver(null)
+        setIsDraggingOver(null);
       }
 
-      e.preventDefault() // スクロールを防止
-    }
+      e.preventDefault(); // スクロールを防止
+    };
 
     // タッチ終了時のイベント
     const handleTouchEnd = (e: TouchEvent) => {
       // 長押しタイマーをクリア
       if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current)
-        longPressTimerRef.current = null
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
       }
 
-      hideTooltip()
-      setIsDragging(false)
-      setDraggingEmoji(null)
+      hideTooltip();
+      setIsDragging(false);
+      setDraggingEmoji(null);
 
       if (e.changedTouches.length > 0) {
-        const touch = e.changedTouches[0]
+        const touch = e.changedTouches[0];
 
         // ドロップ領域上にあるかチェック
-        if (firstDropRef.current && isPointInElement(touch.clientX, touch.clientY, firstDropRef.current)) {
-          setFirstEmoji(emoji)
+        if (
+          firstDropRef.current &&
+          isPointInElement(touch.clientX, touch.clientY, firstDropRef.current)
+        ) {
+          setFirstEmoji(emoji);
         } else if (
           secondDropRef.current &&
-          isPointInElement(touch.clientX, touch.clientY, secondDropRef.current) &&
+          isPointInElement(
+            touch.clientX,
+            touch.clientY,
+            secondDropRef.current,
+          ) &&
           firstEmoji
         ) {
-          setSecondEmoji(emoji)
+          setSecondEmoji(emoji);
         }
       }
 
-      window.removeEventListener("touchmove", handleTouchMove)
-      window.removeEventListener("touchend", handleTouchEnd)
-      setIsDraggingOver(null)
-    }
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      setIsDraggingOver(null);
+    };
 
-    window.addEventListener("touchmove", handleTouchMove, { passive: false })
-    window.addEventListener("touchend", handleTouchEnd)
-  }
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
+  };
 
   // タッチエンドハンドラー
   const handleTouchEnd = () => {
     if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-      longPressTimerRef.current = null
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
     }
-    hideTooltip()
-  }
+    hideTooltip();
+  };
 
   // ドラッグ開始ハンドラー
   const handleDragStart = (emoji: string, e: React.MouseEvent) => {
-    setDraggingEmoji(emoji)
-    setIsDragging(true)
-    setDragPosition({ x: e.clientX, y: e.clientY })
+    setDraggingEmoji(emoji);
+    setIsDragging(true);
+    setDragPosition({ x: e.clientX, y: e.clientY });
 
     // ドラッグ中のマウス移動を追跡
     const handleMouseMove = (e: MouseEvent) => {
-      setDragPosition({ x: e.clientX, y: e.clientY })
-    }
+      setDragPosition({ x: e.clientX, y: e.clientY });
+    };
 
     // ドラッグ終了時のイベント
     const handleMouseUp = (e: MouseEvent) => {
-      setIsDragging(false)
-      setDraggingEmoji(null)
+      setIsDragging(false);
+      setDraggingEmoji(null);
 
       // ドロップ領域上にあるかチェック
-      if (firstDropRef.current && isPointInElement(e.clientX, e.clientY, firstDropRef.current)) {
-        setFirstEmoji(emoji)
-      } else if (secondDropRef.current && isPointInElement(e.clientY, e.clientY, secondDropRef.current)) {
+      if (
+        firstDropRef.current &&
+        isPointInElement(e.clientX, e.clientY, firstDropRef.current)
+      ) {
+        setFirstEmoji(emoji);
+      } else if (
+        secondDropRef.current &&
+        isPointInElement(e.clientY, e.clientY, secondDropRef.current)
+      ) {
         if (firstEmoji) {
-          setSecondEmoji(emoji)
+          setSecondEmoji(emoji);
         }
       }
 
-      window.removeEventListener("mousemove", handleMouseMove)
-      window.removeEventListener("mouseup", handleMouseUp)
-      setIsDraggingOver(null)
-    }
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      setIsDraggingOver(null);
+    };
 
-    window.addEventListener("mousemove", handleMouseMove)
-    window.addEventListener("mouseup", handleMouseUp)
-  }
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
 
   // 要素内に点があるかチェック
   const isPointInElement = (x: number, y: number, element: HTMLElement) => {
-    const rect = element.getBoundingClientRect()
-    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
-  }
+    const rect = element.getBoundingClientRect();
+    return (
+      x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
+    );
+  };
 
   // ドロップ領域のマウスオーバーハンドラー
   const handleDragOver = (dropArea: string) => {
     if (draggingEmoji) {
-      setIsDraggingOver(dropArea)
+      setIsDraggingOver(dropArea);
     }
-  }
+  };
 
   // ドロップ領域のマウスアウトハンドラー
   const handleDragLeave = () => {
-    setIsDraggingOver(null)
-  }
+    setIsDraggingOver(null);
+  };
 
   // API検索実行（絵文字2個選択時の検索ボタンから呼び出し）
   const executeApiSearch = async () => {
-    if (!firstEmoji || !secondEmoji) return
-    setApiResults([])
-    const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`
+    if (!firstEmoji || !secondEmoji) return;
+    setApiResults([]);
+    const query = `${emojiDescriptions[firstEmoji]?.split("：")[0] || firstEmoji} ${emojiDescriptions[secondEmoji]?.split("：")[0] || secondEmoji}`;
 
     // 選択された検索エンジンを取得
     const engine = selectedPref;
 
-    const res = await fetch('/api/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query, engine }),
-    })
-    const data = await res.json()
+    });
+    const data = await res.json();
     if (!data.error) {
-      setApiResults(data.results || data.documents || data || [])
-      setViewMode("searchResults")
+      setApiResults(data.results || data.documents || data || []);
+      setViewMode("searchResults");
     }
-  }
+  };
 
-  const [apiResults, setApiResults] = useState<any[]>([])
-  const [viewMode, setViewMode] = useState<"top" | "home" | "searchResults" | "searchDetail">("top");
+  const [apiResults, setApiResults] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<
+    "top" | "home" | "searchResults" | "searchDetail"
+  >("top");
 
   // filtersの定義の後にfilteredResultsを定義
   const filterKey = `${firstEmoji}+${secondEmoji}`;
   const filters = relatedFilters[filterKey] || [
-    { icon: "🔎", label: "関連情報" }
+    { icon: "🔎", label: "関連情報" },
   ];
 
   // 「すべて」フィルターを先頭に追加
@@ -299,34 +321,35 @@ export default function Home() {
   const displayFilters = [allFilter, ...filters];
 
   // 検索結果のフィルタリング
-  const filteredResults = activeFilter && activeFilter !== "すべて"
-    ? apiResults.filter((item: any) => {
-      const filter = filters.find(f => f.label === activeFilter);
-      if (!filter) return true;
-      const keyword = filter.label;
-      const doc = item.document?.derivedStructData || {};
-      const title = doc.title || doc.htmlTitle || item.title || "";
-      const snippet =
-        doc.snippets?.[0]?.snippet ||
-        doc.pagemap?.metatags?.[0]?.["og:description"] ||
-        item.content ||
-        "";
-      const siteName =
-        doc.pagemap?.metatags?.[0]?.["og:site_name"] ||
-        doc.displayLink ||
-        item.siteName ||
-        "";
-      return (
-        title.includes(keyword) ||
-        snippet.includes(keyword) ||
-        siteName.includes(keyword)
-      );
-    })
-    : apiResults;
+  const filteredResults =
+    activeFilter && activeFilter !== "すべて"
+      ? apiResults.filter((item: any) => {
+          const filter = filters.find((f) => f.label === activeFilter);
+          if (!filter) return true;
+          const keyword = filter.label;
+          const doc = item.document?.derivedStructData || {};
+          const title = doc.title || doc.htmlTitle || item.title || "";
+          const snippet =
+            doc.snippets?.[0]?.snippet ||
+            doc.pagemap?.metatags?.[0]?.["og:description"] ||
+            item.content ||
+            "";
+          const siteName =
+            doc.pagemap?.metatags?.[0]?.["og:site_name"] ||
+            doc.displayLink ||
+            item.siteName ||
+            "";
+          return (
+            title.includes(keyword) ||
+            snippet.includes(keyword) ||
+            siteName.includes(keyword)
+          );
+        })
+      : apiResults;
 
   // ページネーション用
-  const totalResults = apiResults.length
-  const totalPages = Math.ceil(totalResults / resultsPerPage)
+  const totalResults = apiResults.length;
+  const totalPages = Math.ceil(totalResults / resultsPerPage);
 
   function getEmojiCategory(tooltipEmoji: string): React.ReactNode {
     // カテゴリー名を返す（簡易実装: emojiDescriptionsの説明文から推測）
@@ -352,17 +375,19 @@ export default function Home() {
     setSelectedCity(""); // 都道府県が変わったら市区町村もリセット
   }
   // 地域選択後にホーム画面へ遷移する関数
-  function handleRegionSelect(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+  function handleRegionSelect(
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void {
     event.preventDefault();
     if (selectedPref && selectedCity) {
       setViewMode("home");
     }
   }
   // タッチデバイス判定
-  const isTouchDevice = typeof window !== "undefined" && (
-    "ontouchstart" in window ||
-    (window.navigator && window.navigator.maxTouchPoints > 0)
-  );
+  const isTouchDevice =
+    typeof window !== "undefined" &&
+    ("ontouchstart" in window ||
+      (window.navigator && window.navigator.maxTouchPoints > 0));
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
@@ -375,7 +400,13 @@ export default function Home() {
               src="/logo.png"
               alt="サービスロゴ"
               className="mb-8"
-              style={{ width: 330, height: 330, maxWidth: "80%", maxHeight: 240, objectFit: "contain" }}
+              style={{
+                width: 330,
+                height: 330,
+                maxWidth: "80%",
+                maxHeight: 240,
+                objectFit: "contain",
+              }}
             />
             <div className="w-full mb-2">
               <span className="flex items-center text-base font-semibold text-blue-900 mb-2">
@@ -402,7 +433,9 @@ export default function Home() {
                 disabled={!selectedPref}
               >
                 <option value="">市区町村を選択</option>
-                {PREFECTURES.find((pref) => pref.value === selectedPref)?.cities.map((city) => (
+                {PREFECTURES.find(
+                  (pref) => pref.value === selectedPref,
+                )?.cities.map((city) => (
                   <option key={city.value} value={city.value}>
                     {city.label}
                   </option>
@@ -476,9 +509,17 @@ export default function Home() {
                   key={emoji}
                   className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 text-3xl sm:text-4xl rounded-2xl shadow-md border border-gray-100 cursor-pointer bg-white transition hover:shadow-lg active:scale-95 select-none"
                   style={{ userSelect: "none", WebkitUserSelect: "none" }}
-                  onTouchStart={isTouchDevice ? (e) => handleTouchStart(emoji, e) : undefined}
+                  onTouchStart={
+                    isTouchDevice
+                      ? (e) => handleTouchStart(emoji, e)
+                      : undefined
+                  }
                   onTouchEnd={isTouchDevice ? handleTouchEnd : undefined}
-                  onMouseOver={!isTouchDevice ? (e) => handleMouseOver(emoji, e) : undefined}
+                  onMouseOver={
+                    !isTouchDevice
+                      ? (e) => handleMouseOver(emoji, e)
+                      : undefined
+                  }
                   onMouseOut={!isTouchDevice ? handleMouseOut : undefined}
                   onMouseDown={(e) => handleDragStart(emoji, e)}
                   onClick={() => selectEmoji(emoji)}
@@ -486,19 +527,28 @@ export default function Home() {
                   whileHover={{ scale: 1.07 }}
                   whileTap={{ scale: 0.96 }}
                 >
-                  <span className="select-none" style={{ userSelect: "none", WebkitUserSelect: "none" }}>{emoji}</span>
+                  <span
+                    className="select-none"
+                    style={{ userSelect: "none", WebkitUserSelect: "none" }}
+                  >
+                    {emoji}
+                  </span>
                 </motion.div>
               ))}
             </div>
 
             {/* カテゴリーの説明 */}
             <div className="mt-2 mb-6 text-center">
-              <p className="text-sm text-gray-600">サービスを探す絵文字を選んでください</p>
+              <p className="text-sm text-gray-600">
+                サービスを探す絵文字を選んでください
+              </p>
             </div>
 
             {/* よく使われる組み合わせ（2個目選択時も常に表示 */}
             <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">よく使われる組み合わせ</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                よく使われる組み合わせ
+              </h3>
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="grid grid-cols-3 gap-3">
                   {emojiCombinationGuide.map((item, index) => (
@@ -507,14 +557,18 @@ export default function Home() {
                       className="flex flex-col items-center bg-gray-50 rounded-lg p-3 cursor-pointer"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => searchFromHistory(item.firstEmoji, item.secondEmoji)}
+                      onClick={() =>
+                        searchFromHistory(item.firstEmoji, item.secondEmoji)
+                      }
                     >
                       <div className="flex items-center justify-center mb-2">
                         <span className="text-xl">{item.firstEmoji}</span>
                         <span className="mx-1 text-sm text-purple-500">+</span>
                         <span className="text-xl">{item.secondEmoji}</span>
                       </div>
-                      <p className="text-xs text-gray-600 text-center leading-tight">{item.description}</p>
+                      <p className="text-xs text-gray-600 text-center leading-tight">
+                        {item.description}
+                      </p>
                     </motion.div>
                   ))}
                 </div>
@@ -546,7 +600,14 @@ export default function Home() {
                 <span className="text-3xl">{secondEmoji}</span>
               </div>
               <p className="text-sm text-gray-600 mt-2">
-                {(firstEmoji && emojiDescriptions[firstEmoji]?.split("：")[0]) || firstEmoji} × {(secondEmoji && emojiDescriptions[secondEmoji]?.split("：")[0]) || secondEmoji} の検索結果
+                {(firstEmoji &&
+                  emojiDescriptions[firstEmoji]?.split("：")[0]) ||
+                  firstEmoji}{" "}
+                ×{" "}
+                {(secondEmoji &&
+                  emojiDescriptions[secondEmoji]?.split("：")[0]) ||
+                  secondEmoji}{" "}
+                の検索結果
               </p>
 
               <p className="text-xs text-gray-500 mt-1">
@@ -558,15 +619,19 @@ export default function Home() {
                 <button
                   key={filter.label}
                   className={`flex items-center gap-1 px-4 py-2 rounded-full border text-base font-semibold shadow-sm transition
-  ${activeFilter === filter.label || (!activeFilter && filter.label === "すべて")
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700 border-gray-300"
-                    }
+  ${
+    activeFilter === filter.label ||
+    (!activeFilter && filter.label === "すべて")
+      ? "bg-blue-600 text-white"
+      : "bg-white text-gray-700 border-gray-300"
+  }
   ${activeFilter === filter.label || (!activeFilter && filter.label === "すべて") ? "ring-2 ring-blue-400" : ""}
 `}
                   type="button"
                   onClick={() =>
-                    setActiveFilter(filter.label === "すべて" ? null : filter.label)
+                    setActiveFilter(
+                      filter.label === "すべて" ? null : filter.label,
+                    )
                   }
                 >
                   <span>{filter.icon}</span>
@@ -577,22 +642,17 @@ export default function Home() {
             <div className="grid grid-cols-1 gap-4">
               {filteredResults.map((item: any, i: number) => {
                 const doc = item.document?.derivedStructData || {};
-                const title =
-                  doc.title ||
-                  doc.htmlTitle ||
-                  "No title";
-                const url =
-                  doc.link ||
-                  doc.url ||
-                  item.url ||
-                  "#";
+                const title = doc.title || doc.htmlTitle || "No title";
+                const url = doc.link || doc.url || item.url || "#";
                 const snippet =
                   doc.snippets?.[0]?.snippet ||
                   doc.pagemap?.metatags?.[0]?.["og:description"] ||
                   "";
                 // 公開日はsnippetの先頭に日付が含まれていれば抽出
                 let publishDate = "";
-                const snippetDateMatch = doc.snippets?.[0]?.snippet?.match(/^([A-Za-z]{3} \d{1,2}, \d{4})/);
+                const snippetDateMatch = doc.snippets?.[0]?.snippet?.match(
+                  /^([A-Za-z]{3} \d{1,2}, \d{4})/,
+                );
                 if (snippetDateMatch) {
                   publishDate = formatDateToJapanese(snippetDateMatch[0]);
                 }
@@ -627,7 +687,11 @@ export default function Home() {
                       <div className="flex items-center text-xs text-gray-500 gap-3">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-1 inline-block align-text-bottom" />
-                          <span>{publishDate || <span className="text-gray-400">―</span>}</span>
+                          <span>
+                            {publishDate || (
+                              <span className="text-gray-400">―</span>
+                            )}
+                          </span>
                         </div>
                         <div className="flex items-center">
                           <Tag className="w-4 h-4 mr-1 inline-block align-text-bottom" />
@@ -649,11 +713,15 @@ export default function Home() {
                 >
                   前へ
                 </button>
-                <span className="px-2 text-sm">{currentPage} / {totalPages}</span>
+                <span className="px-2 text-sm">
+                  {currentPage} / {totalPages}
+                </span>
                 <button
                   className="px-3 py-1 rounded bg-gray-100 text-gray-600"
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                 >
                   次へ
                 </button>
@@ -677,7 +745,6 @@ export default function Home() {
             </div>
           </div>
         )}
-
 
         {/* AIチャットモーダル */}
         <div>
@@ -723,28 +790,37 @@ export default function Home() {
               })(),
               top: `${tooltipPosition.y - (isTouchDevice ? 90 : 45)}px`,
             }}
-          >            {tooltipEmoji.startsWith("category_") ? (
-            <div className="text-center">
-              <div className="text-base font-bold mb-1">
-                {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
+          >
+            {" "}
+            {tooltipEmoji.startsWith("category_") ? (
+              <div className="text-center">
+                <div className="text-base font-bold mb-1">
+                  {/* emojiCategories[Number.parseInt(tooltipEmoji.split("_")[1])].name */}
+                </div>
+                <div className="text-xs opacity-80">
+                  このカテゴリーから絵文字を選択
+                </div>
               </div>
-              <div className="text-xs opacity-80">このカテゴリーから絵文字を選択</div>
-            </div>
-          ) : (
-            <div>
-              <div className="flex items-center mb-1">
-                <span className="text-lg mr-2">{tooltipEmoji}</span>
-                <span className="font-bold">
-                  {emojiDescriptions[tooltipEmoji]?.split("：")[0] || tooltipEmoji}
-                </span>
+            ) : (
+              <div>
+                <div className="flex items-center mb-1">
+                  <span className="text-lg mr-2">{tooltipEmoji}</span>
+                  <span className="font-bold">
+                    {emojiDescriptions[tooltipEmoji]?.split("：")[0] ||
+                      tooltipEmoji}
+                  </span>
+                </div>
+                <div className="opacity-90">
+                  {emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}
+                </div>
+                <div className="mt-1 opacity-70">
+                  カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}
+                </div>
               </div>
-              <div className="opacity-90">{emojiDescriptions[tooltipEmoji]?.split("：")[1] || ""}</div>
-              <div className="mt-1 opacity-70">カテゴリー: {getEmojiCategory(tooltipEmoji) || ""}</div>
-            </div>
-          )}
+            )}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
