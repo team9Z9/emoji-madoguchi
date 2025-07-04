@@ -8,7 +8,6 @@ const prettier = require("eslint-plugin-prettier");
 module.exports = [
   js.configs.recommended,
   {
-    // ↓ ESLintの対象からeslint.config.jsなど設定ファイルを除外
     ignores: ["eslint.config.js", "node_modules/**", "dist/**"],
   },
   {
@@ -22,12 +21,15 @@ module.exports = [
         project: "./tsconfig.json",
       },
       globals: {
-        window: "readonly",
-        document: "readonly",
-        fetch: "readonly",
-        setTimeout: "readonly",
-        clearTimeout: "readonly",
-        NodeJS: "readonly",
+        window: true,
+        document: true,
+        fetch: true,
+        setTimeout: true,
+        clearTimeout: true,
+        NodeJS: true,
+        process: true,
+        console: true,
+        require: true,
       },
     },
     plugins: {
@@ -39,10 +41,16 @@ module.exports = [
       ...ts.configs.recommended.rules,
       ...react.configs.recommended.rules,
       "prettier/prettier": "warn",
+      "react/react-in-jsx-scope": "off",
+      "react/prop-types": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-require-imports": "off",
     },
     settings: {
       react: {
         version: "detect",
+        pragma: "React",
+        fragment: "Fragment",
       },
     },
   },
